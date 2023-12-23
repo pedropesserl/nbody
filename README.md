@@ -12,6 +12,6 @@ https://github.com/raysan5/raylib/wiki/Working-on-GNU-Linux
 ### Compile
 
 ```bash
-$ git clone https://github.com/pedropesserl/tetric.git
+$ git clone https://github.com/pedropesserl/nbody.git
 $ make
 ```
