@@ -2,6 +2,7 @@
 #include <math.h>
 #include "raylib.h"
 #include "physics.h"
+#include "nbody.h"
 
 int main(int argc, char **argv) {
     int screen_width = 1000;
