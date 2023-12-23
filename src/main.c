@@ -3,12 +3,12 @@
 #include "raylib.h"
 #include "physics.h"
 
-int main() {
-    int screen_width = 800;
-    int screen_height = 600;
+int main(int argc, char **argv) {
+    int screen_width = 1000;
+    int screen_height = 800;
 
     InitWindow(screen_width, screen_height, "nbody");
-    /* SetWindowState(FLAG_VSYNC_HINT); */
+    SetWindowState(FLAG_VSYNC_HINT);
     SetTargetFPS(60);
 
     while (!WindowShouldClose()) {
@@ -16,7 +16,6 @@ int main() {
         BeginDrawing();
         {
             ClearBackground(BLACK);
-            DrawCircleV(ball_position, ball_radius, MAROON);
             DrawFPS(10, 10);
         }
         EndDrawing();
