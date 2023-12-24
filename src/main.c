@@ -14,24 +14,15 @@ int main(int argc, char **argv) {
     SetWindowState(FLAG_VSYNC_HINT);
     SetTargetFPS(60);
 
-    bool collision = false;
     while (!WindowShouldClose()) {
-        if (!collision) {
-            update_bodies(bodies, n_bodies);
-            collision = apply_gravitational_forces(bodies, n_bodies);
-        }
+        update_bodies(bodies, n_bodies);
+        apply_gravitational_forces(bodies, n_bodies, GRAVIT_CONSTANT, handle_2d_collision);
 
         BeginDrawing();
         {
             ClearBackground(BLACK);
             draw_bodies(bodies, n_bodies);
             DrawFPS(10, 10);
-            if (collision) {
-                DrawText("Collision detected!",
-                        GetScreenWidth()/2 - MeasureText("Collision detected!", 50)/2,
-                        GetScreenHeight()/2 - 25,
-                        50, MAROON);
-            }
         }
         EndDrawing();
     }

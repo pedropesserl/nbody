@@ -11,10 +11,6 @@
         exit(1);                                                                        \
     } while (0)
 
-#define ADDVEC2(a, b) (Vector2){(a).x + (b).x, (a).y + (b).y}
-#define SUBVEC2(a, b) (Vector2){(a).x - (b).x, (a).y - (b).y}
-#define MAX(a, b) ((a) > (b) ? (a) : (b))
-
 typedef struct Body {
     float mass;
     float radius;
@@ -33,15 +29,20 @@ Body *create_bodies(int n_bodies);
 // Applies velocity to position and acceleration to velocity in each body.
 void update_bodies(Body *bodies, int n_bodies);
 
-#define MIN_DISTANCE 1e-5f
-#define G 10.0f
+// Handles the colision between two 2D bodies, with the coefficient of
+// restitution as defined below.
+#define COEFF_RESTITUTION 0.99f
+void handle_2d_collision(Body *body1, Body *body2, float coeff_restitution);
 
 // Changes the acceleration of each body according to Newton's gravitational
-// law, with the value of G as defined above, and with a set minimum distance.
-// Returns true if there is a collision between any two of the bodies involved.
-bool apply_gravitational_forces(Body *bodies, int n_bodies);
+// law, with the value of G as defined below.
+// If there was a collision between any two of the bodies involved, calls
+// collision_handler() on them.
+#define GRAVIT_CONSTANT 10.0f
+void apply_gravitational_forces(Body *bodies, int n_bodies, float G,
+                                void collision_handler(Body*, Body*, float));
 
-// For each body, draws a circle of some color.
+// For each body, draws a circle of some color, if the body is on screen.
 void draw_bodies(Body *bodies, int n_bodies);
 
 #endif // NBODY_H_

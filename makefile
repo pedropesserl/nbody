@@ -5,7 +5,7 @@ CFLAGS = -Iinclude -Wall -Wextra -g
 LFLAGS = -lm -lraylib
 
 _OBJ = main.o nbody.o
-_DEPS = raylib.h nbody.h
+_DEPS = raylib.h nbody.h vector.h
 
 SDIR = src
 IDIR = include
