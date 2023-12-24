@@ -10,19 +10,28 @@ int main(int argc, char **argv) {
     int n_bodies = (int)strtol(argv[1], NULL, 10);
     Body *bodies = create_bodies(n_bodies);
 
-    InitWindow(1000, 800, "nbody");
+    InitWindow(1200, 1000, "nbody");
     SetWindowState(FLAG_VSYNC_HINT);
     SetTargetFPS(60);
 
+    bool collision = false;
     while (!WindowShouldClose()) {
-        update_bodies(bodies, n_bodies);
-        apply_gravitational_forces(bodies, n_bodies);
+        if (!collision) {
+            update_bodies(bodies, n_bodies);
+            collision = apply_gravitational_forces(bodies, n_bodies);
+        }
 
         BeginDrawing();
         {
             ClearBackground(BLACK);
             draw_bodies(bodies, n_bodies);
             DrawFPS(10, 10);
+            if (collision) {
+                DrawText("Collision detected!",
+                        GetScreenWidth()/2 - MeasureText("Collision detected!", 50)/2,
+                        GetScreenHeight()/2 - 25,
+                        50, MAROON);
+            }
         }
         EndDrawing();
     }

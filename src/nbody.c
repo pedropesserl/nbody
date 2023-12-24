@@ -35,24 +35,33 @@ void update_bodies(Body *bodies, int n_bodies) {
         bodies[i].position.y += bodies[i].velocity.y * delta_time;
         bodies[i].velocity.x += bodies[i].acceleration.x * delta_time;
         bodies[i].velocity.y += bodies[i].acceleration.y * delta_time;
+        bodies[i].acceleration = (Vector2){0.0f, 0.0f};
     }
 }
 
-void apply_gravitational_forces(Body *bodies, int n_bodies) {
+bool apply_gravitational_forces(Body *bodies, int n_bodies) {
     for (int i = 0; i < n_bodies; i++) {
         for (int j = i+1; j < n_bodies; j++) {
+            if (CheckCollisionCircles(bodies[i].position, bodies[i].radius,
+                                      bodies[j].position, bodies[j].radius))
+                return true;
+
             Vector2 r = SUBVEC2(bodies[i].position, bodies[j].position);
             float r_mag_sq = r.x * r.x + r.y * r.y;
             float r_mag = sqrt(r_mag_sq);
             Vector2 r_norm = (Vector2){r.x / r_mag, r.y / r_mag};
 
-            float acc_i_mag = bodies[j].mass / r_mag_sq * G;
-            float acc_j_mag = bodies[i].mass / r_mag_sq * G;
+            float acc_i_mag = bodies[j].mass / MAX(r_mag_sq, MIN_DISTANCE) * G;
+            float acc_j_mag = bodies[i].mass / MAX(r_mag_sq, MIN_DISTANCE) * G;
 
-            bodies[i].acceleration = (Vector2){-acc_i_mag*r_norm.x, -acc_i_mag*r_norm.y};
-            bodies[j].acceleration = (Vector2){acc_j_mag*r_norm.x, acc_j_mag*r_norm.y};
+            bodies[i].acceleration.x -= acc_i_mag * r_norm.x;
+            bodies[i].acceleration.y -= acc_i_mag * r_norm.y;
+            bodies[j].acceleration.x += acc_j_mag * r_norm.x;
+            bodies[j].acceleration.y += acc_j_mag * r_norm.y;
         }
     }
+
+    return false;
 }
 
 Color body_colors[10] = {

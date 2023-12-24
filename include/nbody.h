@@ -13,6 +13,7 @@
 
 #define ADDVEC2(a, b) (Vector2){(a).x + (b).x, (a).y + (b).y}
 #define SUBVEC2(a, b) (Vector2){(a).x - (b).x, (a).y - (b).y}
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
 
 typedef struct Body {
     float mass;
@@ -32,11 +33,13 @@ Body *create_bodies(int n_bodies);
 // Applies velocity to position and acceleration to velocity in each body.
 void update_bodies(Body *bodies, int n_bodies);
 
-#define G 4.0f
+#define MIN_DISTANCE 1e-5f
+#define G 10.0f
 
 // Changes the acceleration of each body according to Newton's gravitational
-// law (with G defined above)
-void apply_gravitational_forces(Body *bodies, int n_bodies);
+// law, with the value of G as defined above, and with a set minimum distance.
+// Returns true if there is a collision between any two of the bodies involved.
+bool apply_gravitational_forces(Body *bodies, int n_bodies);
 
 // For each body, draws a circle of some color.
 void draw_bodies(Body *bodies, int n_bodies);
