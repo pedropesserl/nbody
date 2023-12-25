@@ -7,12 +7,13 @@ int main(int argc, char **argv) {
     if (argc != 2)
         USAGE;
 
-    int n_bodies = (int)strtol(argv[1], NULL, 10);
-    Body *bodies = create_bodies(n_bodies);
-
+    SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(1200, 1000, "nbody");
     SetWindowState(FLAG_VSYNC_HINT);
     SetTargetFPS(60);
+
+    int n_bodies = (int)strtol(argv[1], NULL, 10);
+    Body *bodies = create_bodies(n_bodies);
 
     while (!WindowShouldClose()) {
         update_bodies(bodies, n_bodies);
@@ -24,6 +25,7 @@ int main(int argc, char **argv) {
             draw_bodies(bodies, n_bodies);
             draw_trails(bodies, n_bodies);
             draw_arrows(bodies, n_bodies);
+            /* draw_UI(); */
             DrawFPS(10, 10);
         }
         EndDrawing();
