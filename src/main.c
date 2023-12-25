@@ -27,9 +27,11 @@ int main(int argc, char **argv) {
         update_bodies(bodies, n_bodies);
         apply_gravitational_forces(bodies, n_bodies, GRAVIT_CONSTANT, handle_2d_collision);
 
-        if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT)) {
-            translate_camera_on_m2_down(&camera);
-        }
+        if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT))
+            translate_camera_on_m2(&camera);
+        float wheel = GetMouseWheelMove();
+        if (wheel != 0)
+            zoom_camera_on_mouse_wheel(&camera, wheel);
 
         BeginDrawing();
         {
