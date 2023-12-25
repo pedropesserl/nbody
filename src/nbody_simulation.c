@@ -4,7 +4,7 @@
 #include "raylib.h"
 #include "raymath.h"
 #define RAYMATH_IMPLEMENTATION
-#include "nbody.h"
+#include "nbody_simulation.h"
 
 Body *create_bodies(int n_bodies) {
     Body *bodies = (Body*)malloc(n_bodies * sizeof(Body));
@@ -120,11 +120,8 @@ Color body_colors[10] = {
 };
 
 void draw_bodies(Body *bodies, int n_bodies) {
-    Rectangle screen = (Rectangle){0, 0, GetScreenWidth(), GetScreenHeight()};
     for (int i = 0; i < n_bodies; i++) {
-        if (CheckCollisionCircleRec(bodies[i].position, bodies[i].radius, screen)) {
-            DrawCircleV(bodies[i].position, bodies[i].radius, body_colors[i % 10]);
-        }
+        DrawCircleV(bodies[i].position, bodies[i].radius, body_colors[i % 10]);
     }
 }
 

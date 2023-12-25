@@ -4,8 +4,8 @@ PROGRAM = nbody
 CFLAGS = -Iinclude -Wall -Wextra -g
 LFLAGS = -lm -lraylib
 
-_OBJ = main.o nbody.o
-_DEPS = raylib.h nbody.h vector.h
+_OBJ = main.o nbody_simulation.o nbody_ui.o
+_DEPS = raylib.h raymath.h nbody_simulation.h nbody_ui.h
 
 SDIR = src
 IDIR = include

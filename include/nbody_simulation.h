@@ -1,5 +1,5 @@
-#ifndef NBODY_H_
-#define NBODY_H_
+#ifndef NBODY_SIMULATION_H_
+#define NBODY_SIMULATION_H_
 
 #define USAGE do {                                                  \
         fprintf(stderr, "Usage: %s <number_of_bodies>\n", argv[0]); \
@@ -63,4 +63,4 @@ void draw_arrows(Body *bodies, int n_bodies);
 // Draws the trail of the bodies, up to a maximum of points (MAX_TRAIL).
 void draw_trails(Body *bodies, int n_bodies);
 
-#endif // NBODY_H_
+#endif // NBODY_SIMULATION_H_
