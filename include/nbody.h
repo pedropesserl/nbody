@@ -11,12 +11,19 @@
         exit(1);                                                                        \
     } while (0)
 
+typedef struct Trail {
+    Vector2 *points;
+    int count;
+    int iterator;
+} Trail;
+
 typedef struct Body {
     float mass;
     float radius;
     Vector2 position;
     Vector2 velocity;
     Vector2 acceleration;
+    Trail trail;
 } Body;
 
 extern Color body_colors[10];
@@ -24,7 +31,11 @@ extern Color body_colors[10];
 // Returns an array of bodies of size n_bodies with data passed from stdin.
 // The radius of each body is calculated as the cube root of its mass
 // (square cube law, assuming all densities are the same).
+#define MAX_TRAIL 1000
 Body *create_bodies(int n_bodies);
+
+// Deallocates the memory for the bodies and returns NULL.
+void *destroy_bodies(Body *bodies, int n_bodies);
 
 // Applies velocity to position and acceleration to velocity in each body.
 void update_bodies(Body *bodies, int n_bodies);
@@ -44,5 +55,12 @@ void apply_gravitational_forces(Body *bodies, int n_bodies, float G,
 
 // For each body, draws a circle of some color, if the body is on screen.
 void draw_bodies(Body *bodies, int n_bodies);
+
+// Draws arrows that represent the velocity and acceleration vectors of each body,
+// in white and grey respectively.
+void draw_arrows(Body *bodies, int n_bodies);
+
+// Draws the trail of the bodies, up to a maximum of points (MAX_TRAIL).
+void draw_trails(Body *bodies, int n_bodies);
 
 #endif // NBODY_H_

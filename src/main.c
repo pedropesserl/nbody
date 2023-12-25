@@ -22,12 +22,16 @@ int main(int argc, char **argv) {
         {
             ClearBackground(BLACK);
             draw_bodies(bodies, n_bodies);
+            draw_trails(bodies, n_bodies);
+            draw_arrows(bodies, n_bodies);
             DrawFPS(10, 10);
         }
         EndDrawing();
     }
 
     CloseWindow();
+
+    bodies = destroy_bodies(bodies, n_bodies);
 
     return 0;
 }

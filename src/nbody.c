@@ -24,16 +24,35 @@ Body *create_bodies(int n_bodies) {
         printf("    Velocity (y): ");
         scanf("%f", &(bodies[i].velocity.y));
         bodies[i].acceleration = (Vector2){0};
+        bodies[i].trail.points = (Vector2*)malloc(MAX_TRAIL * sizeof(Vector2));
+        if (!bodies[i].trail.points)
+            MEM_ERR;
+        bodies[i].trail.points[0] = bodies[i].position;
+        bodies[i].trail.count = 1;
+        bodies[i].trail.iterator = 0;
     }
 
     return bodies;
 }
 
+void *destroy_bodies(Body *bodies, int n_bodies) {
+    for (int i = 0; i < n_bodies; i++) {
+        free(bodies[i].trail.points);
+    }
+    free(bodies);
+    return NULL;
+}
+
 void update_bodies(Body *bodies, int n_bodies) {
     float delta_time = GetFrameTime();
     for (int i = 0; i < n_bodies; i++) {
-        bodies[i].position.x += bodies[i].velocity.x * delta_time;
-        bodies[i].position.y += bodies[i].velocity.y * delta_time;
+        Vector2 newpos = add_vec2(bodies[i].position,
+                                  mul_vec2_scalar(bodies[i].velocity, delta_time));
+        bodies[i].position = newpos;
+        int trail_it = bodies[i].trail.iterator;
+        bodies[i].trail.points[(trail_it + 1) % MAX_TRAIL] = newpos;
+        bodies[i].trail.count += bodies[i].trail.count < MAX_TRAIL;
+        bodies[i].trail.iterator = (trail_it + 1) % MAX_TRAIL;
         bodies[i].velocity.x += bodies[i].acceleration.x * delta_time;
         bodies[i].velocity.y += bodies[i].acceleration.y * delta_time;
         bodies[i].acceleration = (Vector2){0.0f, 0.0f};
@@ -97,6 +116,49 @@ void draw_bodies(Body *bodies, int n_bodies) {
     for (int i = 0; i < n_bodies; i++) {
         if (CheckCollisionCircleRec(bodies[i].position, bodies[i].radius, screen)) {
             DrawCircleV(bodies[i].position, bodies[i].radius, body_colors[i % 10]);
+        }
+    }
+}
+
+void draw_arrows(Body *bodies, int n_bodies) {
+    for (int i = 0; i < n_bodies; i++) {
+        Vector2 horizontal = (Vector2){1.0f, 0.0f};
+
+        // Velocity arrow
+        float cos_v_rotation = dot_vec2(horizontal, bodies[i].velocity)
+                               / mag_vec2(bodies[i].velocity);
+        float v_rotation = -acosf(cos_v_rotation) * RAD2DEG;
+        if (bodies[i].velocity.y > 0) {
+            v_rotation = 360.0f - v_rotation;
+        }
+        Vector2 v_arrow_end = add_vec2(bodies[i].position, bodies[i].velocity);
+        DrawLineEx(bodies[i].position, v_arrow_end, 2.0f, RAYWHITE);
+        DrawPoly(v_arrow_end, 3, 4.5f, v_rotation, RAYWHITE);
+
+        // Acceleration arrow
+        float cos_a_rotation = dot_vec2(horizontal, bodies[i].acceleration)
+                               / mag_vec2(bodies[i].acceleration);
+        float a_rotation = -acosf(cos_a_rotation) * RAD2DEG;
+        if (bodies[i].acceleration.y > 0) {
+            a_rotation = 360.0f - a_rotation;
+        }
+        Vector2 a_arrow_end = add_vec2(bodies[i].position, bodies[i].acceleration);
+        DrawLineEx(bodies[i].position, a_arrow_end, 2.0f, GRAY);
+        DrawPoly(a_arrow_end, 3, 4.5f, a_rotation, GRAY);
+    }
+}
+
+#define mod(a, b) (((a) % (b) + (b)) % (b))
+
+void draw_trails(Body *bodies, int n_bodies) {
+    for (int i = 0; i < n_bodies; i++) {
+        int trail_it = bodies[i].trail.iterator;
+        int count = bodies[i].trail.count;
+
+        for (int j = 1; j < count; j++) {
+            DrawLineV(bodies[i].trail.points[mod(trail_it + j, count)],
+                      bodies[i].trail.points[mod(trail_it + 1 + j, count)],
+                      body_colors[i % 10]);
         }
     }
 }
