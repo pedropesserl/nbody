@@ -3,7 +3,6 @@
 #include <math.h>
 #include "raylib.h"
 #include "raymath.h"
-#define RAYMATH_IMPLEMENTATION
 #include "nbody_simulation.h"
 
 Body *create_bodies(int n_bodies) {
@@ -111,59 +110,6 @@ void apply_gravitational_forces(Body *bodies, int n_bodies, float G,
             bodies[i].acceleration.y -= acc_i_mag * r_norm.y;
             bodies[j].acceleration.x += acc_j_mag * r_norm.x;
             bodies[j].acceleration.y += acc_j_mag * r_norm.y;
-        }
-    }
-}
-
-Color body_colors[10] = {
-    RED, BLUE, GREEN, YELLOW, PURPLE, ORANGE, PINK, GOLD, LIME, DARKBLUE
-};
-
-void draw_bodies(Body *bodies, int n_bodies) {
-    for (int i = 0; i < n_bodies; i++) {
-        DrawCircleV(bodies[i].position, bodies[i].radius, body_colors[i % 10]);
-    }
-}
-
-void draw_arrows(Body *bodies, int n_bodies) {
-    for (int i = 0; i < n_bodies; i++) {
-        Vector2 horizontal = (Vector2){1.0f, 0.0f};
-
-        // Velocity arrow
-        float cos_v_rotation = Vector2DotProduct(horizontal, bodies[i].velocity)
-                               / Vector2Length(bodies[i].velocity);
-        float v_rotation = -acosf(cos_v_rotation) * RAD2DEG;
-        if (bodies[i].velocity.y > 0) {
-            v_rotation = 360.0f - v_rotation;
-        }
-        Vector2 v_arrow_end = Vector2Add(bodies[i].position, bodies[i].velocity);
-        DrawLineEx(bodies[i].position, v_arrow_end, 2.0f, RAYWHITE);
-        DrawPoly(v_arrow_end, 3, 4.5f, v_rotation, RAYWHITE);
-
-        // Acceleration arrow
-        float cos_a_rotation = Vector2DotProduct(horizontal, bodies[i].acceleration)
-                               / Vector2Length(bodies[i].acceleration);
-        float a_rotation = -acosf(cos_a_rotation) * RAD2DEG;
-        if (bodies[i].acceleration.y > 0) {
-            a_rotation = 360.0f - a_rotation;
-        }
-        Vector2 a_arrow_end = Vector2Add(bodies[i].position, bodies[i].acceleration);
-        DrawLineEx(bodies[i].position, a_arrow_end, 2.0f, GRAY);
-        DrawPoly(a_arrow_end, 3, 4.5f, a_rotation, GRAY);
-    }
-}
-
-#define mod(a, b) (((a) % (b) + (b)) % (b))
-
-void draw_trails(Body *bodies, int n_bodies) {
-    for (int i = 0; i < n_bodies; i++) {
-        int trail_it = bodies[i].trail.iterator;
-        int count = bodies[i].trail.count;
-
-        for (int j = 1; j < count; j++) {
-            DrawLineV(bodies[i].trail.points[mod(trail_it + j, count)],
-                      bodies[i].trail.points[mod(trail_it + 1 + j, count)],
-                      body_colors[i % 10]);
         }
     }
 }

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "raylib.h"
+#include "raymath.h"
 #include "nbody_simulation.h"
 #include "nbody_ui.h"
 
@@ -14,24 +15,17 @@ int main(int argc, char **argv) {
     SetWindowState(FLAG_VSYNC_HINT);
     SetTargetFPS(60);
 
-    Camera2D camera = {
-        .offset = (Vector2){0},
-        .target = (Vector2){0},
-        .rotation = 0.0f,
-        .zoom = 1.0f
-    };
+    Camera2D camera = {0};
+    camera.zoom = 1.0f;
 
+    UI ui = setup_ui();
     Body *bodies = create_bodies(n_bodies);
 
     while (!WindowShouldClose()) {
         update_bodies(bodies, n_bodies);
         apply_gravitational_forces(bodies, n_bodies, GRAVIT_CONSTANT, handle_2d_collision);
 
-        if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT))
-            translate_camera_on_m2(&camera);
-        float wheel = GetMouseWheelMove();
-        if (wheel != 0)
-            zoom_camera_on_mouse_wheel(&camera, wheel);
+        update_ui(&ui, &camera);
 
         BeginDrawing();
         {
@@ -39,16 +33,22 @@ int main(int argc, char **argv) {
             BeginMode2D(camera);
             {
                 draw_bodies(bodies, n_bodies);
-                draw_trails(bodies, n_bodies);
-                draw_arrows(bodies, n_bodies);
+                if (ui.trails_on) {
+                    draw_trails(bodies, n_bodies);
+                }
+                if (ui.arrows_on) {
+                    draw_arrows(bodies, n_bodies);
+                }
             }
             EndMode2D();
             DrawFPS(10, 10);
-            /* draw_UI(); */
+
+            draw_ui(ui);
         }
         EndDrawing();
     }
 
+    unload_ui(&ui);
     CloseWindow();
     bodies = destroy_bodies(bodies, n_bodies);
 

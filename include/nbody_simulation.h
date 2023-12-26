@@ -1,6 +1,8 @@
 #ifndef NBODY_SIMULATION_H_
 #define NBODY_SIMULATION_H_
 
+#include "raylib.h"
+
 #define USAGE do {                                                  \
         fprintf(stderr, "Usage: %s <number_of_bodies>\n", argv[0]); \
         exit(1);                                                    \
@@ -26,8 +28,6 @@ typedef struct Body {
     Trail trail;
 } Body;
 
-extern Color body_colors[10];
-
 // Returns an array of bodies of size n_bodies with data passed from stdin.
 // The radius of each body is calculated as the cube root of its mass
 // (square cube law, assuming all densities are the same).
@@ -52,15 +52,5 @@ void handle_2d_collision(Body *body1, Body *body2, float coeff_restitution);
 #define GRAVIT_CONSTANT 10.0f
 void apply_gravitational_forces(Body *bodies, int n_bodies, float G,
                                 void collision_handler(Body*, Body*, float));
-
-// For each body, draws a circle of some color, if the body is on screen.
-void draw_bodies(Body *bodies, int n_bodies);
-
-// Draws arrows that represent the velocity and acceleration vectors of each body,
-// in white and grey respectively.
-void draw_arrows(Body *bodies, int n_bodies);
-
-// Draws the trail of the bodies, up to a maximum of points (MAX_TRAIL).
-void draw_trails(Body *bodies, int n_bodies);
 
 #endif // NBODY_SIMULATION_H_
