@@ -29,7 +29,8 @@ UI setup_ui(void) {
         .toggle_arrows = (Button){
             .box = (Rectangle){
                 .x = HUD_BUTTON_MARGIN,
-                .y = (float)GetScreenHeight()/2.0f - HUD_BUTTON_MARGIN/2.0f - HUD_BUTTON_SIZE,
+                .y = (float)GetScreenHeight()/2.0f
+                     - HUD_BUTTON_MARGIN/2.0f - HUD_BUTTON_SIZE,
                 .width = HUD_BUTTON_SIZE,
                 .height = HUD_BUTTON_SIZE,
             },
@@ -161,6 +162,9 @@ void update_ui(UI *ui, Camera2D *camera) {
     if (wheel != 0)
         zoom_camera_on_mouse_wheel(camera, wheel);
 
+    ui->toggle_arrows.box.x = HUD_BUTTON_MARGIN;
+    ui->toggle_arrows.box.y = (float)GetScreenHeight()/2.0f
+                              - HUD_BUTTON_MARGIN/2.0f - HUD_BUTTON_SIZE;
     Vector2 mouse = GetMousePosition();
     if (CheckCollisionPointRec(mouse, ui->toggle_arrows.box)) { // hovering
         ui->toggle_arrows.color = COLOR_HUD_BUTTON_HOVERED;
@@ -173,6 +177,8 @@ void update_ui(UI *ui, Camera2D *camera) {
                                                 : COLOR_HUD_BUTTON_INITIAL;
     }
 
+    ui->toggle_trails.box.x = HUD_BUTTON_MARGIN;
+    ui->toggle_trails.box.y = (float)GetScreenHeight()/2.0f + HUD_BUTTON_MARGIN/2.0f;
     if (CheckCollisionPointRec(mouse, ui->toggle_trails.box)) { // hovering
         ui->toggle_trails.color = COLOR_HUD_BUTTON_HOVERED;
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {  // clicked
