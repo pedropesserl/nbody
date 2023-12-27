@@ -53,13 +53,15 @@ void update_bodies(Body *bodies, int n_bodies) {
     for (int i = 0; i < n_bodies; i++) {
         Vector2 newpos = Vector2Add(bodies[i].position,
                                     Vector2Scale(bodies[i].velocity, delta_time));
-        bodies[i].position = newpos;
         int trail_it = bodies[i].trail.iterator;
         bodies[i].trail.points[(trail_it + 1) % MAX_TRAIL] = newpos;
         bodies[i].trail.count += bodies[i].trail.count < MAX_TRAIL;
         bodies[i].trail.iterator = (trail_it + 1) % MAX_TRAIL;
-        bodies[i].velocity.x += bodies[i].acceleration.x * delta_time;
-        bodies[i].velocity.y += bodies[i].acceleration.y * delta_time;
+
+        bodies[i].position = newpos;
+        bodies[i].velocity = Vector2Add(bodies[i].velocity,
+                                        Vector2Scale(bodies[i].acceleration,
+                                                     delta_time));
         bodies[i].acceleration = Vector2Zero();
     }
 }

@@ -22,8 +22,13 @@ int main(int argc, char **argv) {
     Body *bodies = create_bodies(n_bodies);
 
     while (!WindowShouldClose()) {
-        update_bodies(bodies, n_bodies);
-        apply_gravitational_forces(bodies, n_bodies, GRAVIT_CONSTANT, handle_2d_collision);
+        if (!ui.is_paused) {
+            for (int i = 0; i < ui.fast_forward_factor; i++) {
+                update_bodies(bodies, n_bodies);
+                apply_gravitational_forces(bodies, n_bodies,
+                                           GRAVIT_CONSTANT, handle_2d_collision);
+            }
+        }
 
         update_ui(&ui, &camera);
 

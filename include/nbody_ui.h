@@ -4,6 +4,8 @@
 #include "raylib.h"
 #include "nbody_simulation.h"
 
+#define ICON_COUNT 6
+
 #define COLOR_BACKGROUND         BLACK
 #define COLOR_VELOCITY_ARROW     RAYWHITE
 #define COLOR_ACCELERATION_ARROW GRAY
@@ -11,7 +13,8 @@
 #define COLOR_HUD_BUTTON_PRESSED RAYWHITE
 #define COLOR_HUD_BUTTON_HOVERED GRAY
 #define COLOR_HUD_BUTTON_BORDER  RAYWHITE
-#define HUD_BUTTON_SIZE   40.0f
+#define HUD_PRIMARY_BUTTON_SIZE   40.0f
+#define HUD_SECONDARY_BUTTON_SIZE 30.0f
 #define HUD_BUTTON_MARGIN 20.0f
 
 typedef struct Button {
@@ -27,12 +30,15 @@ typedef struct Button {
 } Button;
 
 typedef struct UI {
+    bool is_paused;
     bool arrows_on;
     bool trails_on;
+    int fast_forward_factor;
     Color body_colors[10];
+    Button play_pause;
     Button toggle_arrows;
     Button toggle_trails;
-    Texture2D icons[4];
+    Texture2D icons[ICON_COUNT];
 } UI;
 
 // Resizes an image to fit inside of a rectangle of size rectangle_size with its

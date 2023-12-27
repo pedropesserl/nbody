@@ -19,20 +19,46 @@ void resize_image_to_rectangle(Image *image, Vector2 rectangle_size, float scale
     ImageResize(image, new_width, new_height);
 }
 
+#define LOAD_ICONS { \
+            LoadImage("./img/icon_pause.png"),      \
+            LoadImage("./img/icon_play.png"),       \
+            LoadImage("./img/icon_arrows_off.png"), \
+            LoadImage("./img/icon_arrows_on.png"),  \
+            LoadImage("./img/icon_trails_off.png"), \
+            LoadImage("./img/icon_trails_on.png"),  \
+        }
+
 UI setup_ui(void) {
     UI ui = {
+        .is_paused = false,
         .arrows_on = false,
         .trails_on = false,
+        .fast_forward_factor = 1,
         .body_colors = {
             RED, BLUE, GREEN, YELLOW, PURPLE, ORANGE, PINK, GOLD, LIME, DARKBLUE
+        },
+        .play_pause = (Button){
+            .box = (Rectangle){
+                .x = (float)GetScreenWidth()/2.0f - HUD_SECONDARY_BUTTON_SIZE,
+                .y = HUD_BUTTON_MARGIN,
+                .width = HUD_SECONDARY_BUTTON_SIZE,
+                .height = HUD_SECONDARY_BUTTON_SIZE,
+            },
+            .roundness = 0.3f,
+            .is_pressed = false,
+            .is_hovered = false,
+            .color = COLOR_HUD_BUTTON_INITIAL,
+            .has_border = false,
+            .border_color = COLOR_HUD_BUTTON_BORDER,
+            .border_thickness = 2.0f,
         },
         .toggle_arrows = (Button){
             .box = (Rectangle){
                 .x = HUD_BUTTON_MARGIN,
                 .y = (float)GetScreenHeight()/2.0f
-                     - HUD_BUTTON_MARGIN/2.0f - HUD_BUTTON_SIZE,
-                .width = HUD_BUTTON_SIZE,
-                .height = HUD_BUTTON_SIZE,
+                     - HUD_BUTTON_MARGIN/2.0f - HUD_PRIMARY_BUTTON_SIZE,
+                .width = HUD_PRIMARY_BUTTON_SIZE,
+                .height = HUD_PRIMARY_BUTTON_SIZE,
             },
             .roundness = 0.3f,
             .is_pressed = false,
@@ -46,8 +72,8 @@ UI setup_ui(void) {
             .box = (Rectangle){
                 .x = HUD_BUTTON_MARGIN,
                 .y = (float)GetScreenHeight()/2.0f + HUD_BUTTON_MARGIN/2.0f,
-                .width = HUD_BUTTON_SIZE,
-                .height = HUD_BUTTON_SIZE,
+                .width = HUD_PRIMARY_BUTTON_SIZE,
+                .height = HUD_PRIMARY_BUTTON_SIZE,
             },
             .roundness = 0.3f,
             .is_pressed = false,
@@ -60,32 +86,32 @@ UI setup_ui(void) {
         .icons = {{0}} // initialized after we load and resize the images
     };
 
-    Image icons_img[4] = {
-        LoadImage("./img/icon_arrows_off.png"),
-        LoadImage("./img/icon_arrows_on.png"),
-        LoadImage("./img/icon_trails_off.png"),
-        LoadImage("./img/icon_trails_on.png"),
-    };
+    Image icons_img[ICON_COUNT] = LOAD_ICONS;
+    Vector2 play_pause_size = (Vector2) { ui.play_pause.box.width,
+                                          ui.play_pause.box.height };
     Vector2 toggle_arrows_size = (Vector2){ ui.toggle_arrows.box.width,
                                             ui.toggle_arrows.box.height };
     Vector2 toggle_trails_size = (Vector2){ ui.toggle_trails.box.width,
                                             ui.toggle_trails.box.height };
-    resize_image_to_rectangle(&(icons_img[0]), toggle_arrows_size, 0.8f);
-    resize_image_to_rectangle(&(icons_img[1]), toggle_arrows_size, 0.8f);
-    resize_image_to_rectangle(&(icons_img[2]), toggle_trails_size, 0.8f);
-    resize_image_to_rectangle(&(icons_img[3]), toggle_trails_size, 0.8f);
-    for (int i = 0; i < 4; i++) {
+    resize_image_to_rectangle(&(icons_img[0]), play_pause_size, 0.6f);
+    resize_image_to_rectangle(&(icons_img[1]), play_pause_size, 0.6f);
+    resize_image_to_rectangle(&(icons_img[2]), toggle_arrows_size, 0.8f);
+    resize_image_to_rectangle(&(icons_img[3]), toggle_arrows_size, 0.8f);
+    resize_image_to_rectangle(&(icons_img[4]), toggle_trails_size, 0.8f);
+    resize_image_to_rectangle(&(icons_img[5]), toggle_trails_size, 0.8f);
+    for (int i = 0; i < ICON_COUNT; i++) {
         ui.icons[i] = LoadTextureFromImage(icons_img[i]);
         UnloadImage(icons_img[i]);
     }
-    ui.toggle_arrows.icon_index = 0;
-    ui.toggle_trails.icon_index = 2;
+    ui.play_pause.icon_index = 0;
+    ui.toggle_arrows.icon_index = 2;
+    ui.toggle_trails.icon_index = 4;
 
     return ui;
 }
 
 void unload_ui(UI *ui) {
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < ICON_COUNT; i++) {
         UnloadTexture(ui->icons[i]);
     }
 }
@@ -162,28 +188,45 @@ void update_ui(UI *ui, Camera2D *camera) {
     if (wheel != 0)
         zoom_camera_on_mouse_wheel(camera, wheel);
 
+    Vector2 mouse = GetMousePosition();
+
+    // Update play/pause button
+    ui->play_pause.box.x = (float)GetScreenWidth()/2.0f - HUD_SECONDARY_BUTTON_SIZE/2.0f;
+    ui->play_pause.box.y = HUD_BUTTON_MARGIN;
+    if (CheckCollisionPointRec(mouse, ui->play_pause.box)) { // hovering
+        ui->play_pause.color = COLOR_HUD_BUTTON_HOVERED;
+        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {  // clicked
+            ui->is_paused = !ui->is_paused;
+            ui->play_pause.icon_index = (ui->play_pause.icon_index + 1) % 2;
+        }
+    } else { // not hovering
+        ui->play_pause.color = ui->is_paused ? COLOR_HUD_BUTTON_PRESSED
+                                             : COLOR_HUD_BUTTON_INITIAL;
+    }
+
+    // Update toggle arrows button
     ui->toggle_arrows.box.x = HUD_BUTTON_MARGIN;
     ui->toggle_arrows.box.y = (float)GetScreenHeight()/2.0f
-                              - HUD_BUTTON_MARGIN/2.0f - HUD_BUTTON_SIZE;
-    Vector2 mouse = GetMousePosition();
+                              - HUD_BUTTON_MARGIN/2.0f - HUD_PRIMARY_BUTTON_SIZE;
     if (CheckCollisionPointRec(mouse, ui->toggle_arrows.box)) { // hovering
         ui->toggle_arrows.color = COLOR_HUD_BUTTON_HOVERED;
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {  // clicked
             ui->arrows_on = !ui->arrows_on;
-            ui->toggle_arrows.icon_index = (ui->toggle_arrows.icon_index + 1) % 2;
+            ui->toggle_arrows.icon_index = (ui->toggle_arrows.icon_index + 1) % 2 + 2;
         }
     } else { // not hovering
         ui->toggle_arrows.color = ui->arrows_on ? COLOR_HUD_BUTTON_PRESSED
                                                 : COLOR_HUD_BUTTON_INITIAL;
     }
 
+    // Update toggle trails button
     ui->toggle_trails.box.x = HUD_BUTTON_MARGIN;
     ui->toggle_trails.box.y = (float)GetScreenHeight()/2.0f + HUD_BUTTON_MARGIN/2.0f;
     if (CheckCollisionPointRec(mouse, ui->toggle_trails.box)) { // hovering
         ui->toggle_trails.color = COLOR_HUD_BUTTON_HOVERED;
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {  // clicked
             ui->trails_on = !ui->trails_on;
-            ui->toggle_trails.icon_index = (ui->toggle_trails.icon_index + 1) % 2 + 2;
+            ui->toggle_trails.icon_index = (ui->toggle_trails.icon_index + 1) % 2 + 4;
         }
     } else { // not hovering
         ui->toggle_trails.color = ui->trails_on ? COLOR_HUD_BUTTON_PRESSED
@@ -209,6 +252,7 @@ void draw_button(Button b, UI ui) {
 }
 
 void draw_ui(UI ui) {
+    draw_button(ui.play_pause, ui);
     draw_button(ui.toggle_arrows, ui);
     draw_button(ui.toggle_trails, ui);
 }
