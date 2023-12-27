@@ -20,47 +20,44 @@ void resize_image_to_rectangle(Image *image, Vector2 rectangle_size, float scale
 }
 
 UI setup_ui(void) {
-    UI ui = {0};
-    ui.arrows_on = false;
-    ui.trails_on = false;
-    ui.button_bgs[0] = BLACK;
-    ui.button_bgs[1] = RAYWHITE;
-    ui.toggle_arrows = (Button){
-        .box = (Rectangle){
-            .x = 0.0f,
-            .y = 0.0f,
-            .width = 40.0f,
-            .height = 40.0f,
+    UI ui = {
+        .arrows_on = false,
+        .trails_on = false,
+        .body_colors = {
+            RED, BLUE, GREEN, YELLOW, PURPLE, ORANGE, PINK, GOLD, LIME, DARKBLUE
         },
-        .padding = 20.0f,
-        .roundness = 0.3f,
-        .bg_color_index = 0,
-        .has_border = true,
-        .border_color = RAYWHITE,
-        .border_thickness = 2.0f,
-    };
-    ui.toggle_arrows.box.x = ui.toggle_arrows.padding;
-    ui.toggle_arrows.box.y = (float)GetScreenHeight() / 2.0f
-                             - ui.toggle_arrows.padding / 2.0f
-                             - ui.toggle_arrows.box.height;
-    
-    ui.toggle_trails = (Button){
-        .box = (Rectangle){
-            .x = 0.0f,
-            .y = 0.0f,
-            .width = 40.0f,
-            .height = 40.0f,
+        .toggle_arrows = (Button){
+            .box = (Rectangle){
+                .x = HUD_BUTTON_MARGIN,
+                .y = (float)GetScreenHeight()/2.0f - HUD_BUTTON_MARGIN/2.0f - HUD_BUTTON_SIZE,
+                .width = HUD_BUTTON_SIZE,
+                .height = HUD_BUTTON_SIZE,
+            },
+            .roundness = 0.3f,
+            .is_pressed = false,
+            .is_hovered = false,
+            .color = COLOR_HUD_BUTTON_INITIAL,
+            .has_border = true,
+            .border_color = COLOR_HUD_BUTTON_BORDER,
+            .border_thickness = 2.0f,
         },
-        .padding = 20.0f,
-        .roundness = 0.3f,
-        .bg_color_index = 0,
-        .has_border = true,
-        .border_color = RAYWHITE,
-        .border_thickness = 2.0f,
+        .toggle_trails = (Button){
+            .box = (Rectangle){
+                .x = HUD_BUTTON_MARGIN,
+                .y = (float)GetScreenHeight()/2.0f + HUD_BUTTON_MARGIN/2.0f,
+                .width = HUD_BUTTON_SIZE,
+                .height = HUD_BUTTON_SIZE,
+            },
+            .roundness = 0.3f,
+            .is_pressed = false,
+            .is_hovered = false,
+            .color = COLOR_HUD_BUTTON_INITIAL,
+            .has_border = true,
+            .border_color = COLOR_HUD_BUTTON_BORDER,
+            .border_thickness = 2.0f,
+        },
+        .icons = {{0}} // initialized after we load and resize the images
     };
-    ui.toggle_trails.box.x = ui.toggle_trails.padding;
-    ui.toggle_trails.box.y = (float)GetScreenHeight() / 2.0f
-                             + ui.toggle_trails.padding / 2.0f;
 
     Image icons_img[4] = {
         LoadImage("./img/icon_arrows_off.png"),
@@ -68,14 +65,14 @@ UI setup_ui(void) {
         LoadImage("./img/icon_trails_off.png"),
         LoadImage("./img/icon_trails_on.png"),
     };
-    Vector2 toggle_arrows_sz = (Vector2){ ui.toggle_arrows.box.width,
-                                          ui.toggle_arrows.box.height };
-    Vector2 toggle_trails_sz = (Vector2){ ui.toggle_trails.box.width,
-                                          ui.toggle_trails.box.height };
-    resize_image_to_rectangle(&(icons_img[0]), toggle_arrows_sz, 0.8f);
-    resize_image_to_rectangle(&(icons_img[1]), toggle_arrows_sz, 0.8f);
-    resize_image_to_rectangle(&(icons_img[2]), toggle_trails_sz, 0.8f);
-    resize_image_to_rectangle(&(icons_img[3]), toggle_trails_sz, 0.8f);
+    Vector2 toggle_arrows_size = (Vector2){ ui.toggle_arrows.box.width,
+                                            ui.toggle_arrows.box.height };
+    Vector2 toggle_trails_size = (Vector2){ ui.toggle_trails.box.width,
+                                            ui.toggle_trails.box.height };
+    resize_image_to_rectangle(&(icons_img[0]), toggle_arrows_size, 0.8f);
+    resize_image_to_rectangle(&(icons_img[1]), toggle_arrows_size, 0.8f);
+    resize_image_to_rectangle(&(icons_img[2]), toggle_trails_size, 0.8f);
+    resize_image_to_rectangle(&(icons_img[3]), toggle_trails_size, 0.8f);
     for (int i = 0; i < 4; i++) {
         ui.icons[i] = LoadTextureFromImage(icons_img[i]);
         UnloadImage(icons_img[i]);
@@ -92,13 +89,9 @@ void unload_ui(UI *ui) {
     }
 }
 
-Color body_colors[10] = {
-    RED, BLUE, GREEN, YELLOW, PURPLE, ORANGE, PINK, GOLD, LIME, DARKBLUE
-};
-
-void draw_bodies(Body *bodies, int n_bodies) {
+void draw_bodies(Body *bodies, int n_bodies, UI ui) {
     for (int i = 0; i < n_bodies; i++) {
-        DrawCircleV(bodies[i].position, bodies[i].radius, body_colors[i % 10]);
+        DrawCircleV(bodies[i].position, bodies[i].radius, ui.body_colors[i % 10]);
     }
 }
 
@@ -114,8 +107,8 @@ void draw_arrows(Body *bodies, int n_bodies) {
             v_rotation = 360.0f - v_rotation;
         }
         Vector2 v_arrow_end = Vector2Add(bodies[i].position, bodies[i].velocity);
-        DrawLineEx(bodies[i].position, v_arrow_end, 2.0f, RAYWHITE);
-        DrawPoly(v_arrow_end, 3, 4.5f, v_rotation, RAYWHITE);
+        DrawLineEx(bodies[i].position, v_arrow_end, 2.0f, COLOR_VELOCITY_ARROW);
+        DrawPoly(v_arrow_end, 3, 4.5f, v_rotation, COLOR_VELOCITY_ARROW);
 
         // Acceleration arrow
         float cos_a_rotation = Vector2DotProduct(horizontal, bodies[i].acceleration)
@@ -125,14 +118,14 @@ void draw_arrows(Body *bodies, int n_bodies) {
             a_rotation = 360.0f - a_rotation;
         }
         Vector2 a_arrow_end = Vector2Add(bodies[i].position, bodies[i].acceleration);
-        DrawLineEx(bodies[i].position, a_arrow_end, 2.0f, GRAY);
-        DrawPoly(a_arrow_end, 3, 4.5f, a_rotation, GRAY);
+        DrawLineEx(bodies[i].position, a_arrow_end, 2.0f, COLOR_ACCELERATION_ARROW);
+        DrawPoly(a_arrow_end, 3, 4.5f, a_rotation, COLOR_ACCELERATION_ARROW);
     }
 }
 
 #define mod(a, b) (((a) % (b) + (b)) % (b))
 
-void draw_trails(Body *bodies, int n_bodies) {
+void draw_trails(Body *bodies, int n_bodies, UI ui) {
     for (int i = 0; i < n_bodies; i++) {
         int trail_it = bodies[i].trail.iterator;
         int count = bodies[i].trail.count;
@@ -140,7 +133,7 @@ void draw_trails(Body *bodies, int n_bodies) {
         for (int j = 1; j < count; j++) {
             DrawLineV(bodies[i].trail.points[mod(trail_it + j, count)],
                       bodies[i].trail.points[mod(trail_it + 1 + j, count)],
-                      body_colors[i % 10]);
+                      ui.body_colors[i % 10]);
         }
     }
 }
@@ -161,8 +154,6 @@ void zoom_camera_on_mouse_wheel(Camera2D *camera, float wheel) {
         camera->zoom = zoom_increment;
 }
 
-Color button_bgs[2] = { BLACK, RAYWHITE };
-
 void update_ui(UI *ui, Camera2D *camera) {
     if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT))
         translate_camera_on_m2(camera);
@@ -172,27 +163,32 @@ void update_ui(UI *ui, Camera2D *camera) {
 
     Vector2 mouse = GetMousePosition();
     if (CheckCollisionPointRec(mouse, ui->toggle_arrows.box)) { // hovering
-        // TODO ...
+        ui->toggle_arrows.color = COLOR_HUD_BUTTON_HOVERED;
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {  // clicked
             ui->arrows_on = !ui->arrows_on;
-            ui->toggle_arrows.bg_color_index = !ui->toggle_arrows.bg_color_index;
-            ui->toggle_arrows.icon_index = !ui->toggle_arrows.icon_index;
+            ui->toggle_arrows.icon_index = (ui->toggle_arrows.icon_index + 1) % 2;
         }
+    } else { // not hovering
+        ui->toggle_arrows.color = ui->arrows_on ? COLOR_HUD_BUTTON_PRESSED
+                                                : COLOR_HUD_BUTTON_INITIAL;
     }
 
     if (CheckCollisionPointRec(mouse, ui->toggle_trails.box)) { // hovering
-        // TODO ...
+        ui->toggle_trails.color = COLOR_HUD_BUTTON_HOVERED;
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {  // clicked
             ui->trails_on = !ui->trails_on;
-            ui->toggle_trails.bg_color_index = !ui->toggle_trails.bg_color_index;
             ui->toggle_trails.icon_index = (ui->toggle_trails.icon_index + 1) % 2 + 2;
         }
+    } else { // not hovering
+        ui->toggle_trails.color = ui->trails_on ? COLOR_HUD_BUTTON_PRESSED
+                                                : COLOR_HUD_BUTTON_INITIAL;
     }
 }
 
 void draw_button(Button b, UI ui) {
     const int segments = 20;
-    DrawRectangleRounded(b.box, b.roundness, segments, ui.button_bgs[b.bg_color_index]);
+
+    DrawRectangleRounded(b.box, b.roundness, segments, b.color);
     if (b.has_border) {
         DrawRectangleRoundedLines(b.box, b.roundness, segments,
                                   b.border_thickness, b.border_color);

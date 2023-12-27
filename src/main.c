@@ -11,7 +11,7 @@ int main(int argc, char **argv) {
     int n_bodies = (int)strtol(argv[1], NULL, 10);
 
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
-    InitWindow(1200, 1000, "nbody");
+    InitWindow(1200, 900, "nbody");
     SetWindowState(FLAG_VSYNC_HINT);
     SetTargetFPS(60);
 
@@ -29,12 +29,12 @@ int main(int argc, char **argv) {
 
         BeginDrawing();
         {
-            ClearBackground(BLACK);
+            ClearBackground(COLOR_BACKGROUND);
             BeginMode2D(camera);
             {
-                draw_bodies(bodies, n_bodies);
+                draw_bodies(bodies, n_bodies, ui);
                 if (ui.trails_on) {
-                    draw_trails(bodies, n_bodies);
+                    draw_trails(bodies, n_bodies, ui);
                 }
                 if (ui.arrows_on) {
                     draw_arrows(bodies, n_bodies);
