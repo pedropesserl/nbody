@@ -122,31 +122,23 @@ void draw_bodies(Body *bodies, int n_bodies, UI ui) {
     }
 }
 
-void draw_arrows(Body *bodies, int n_bodies) {
-    for (int i = 0; i < n_bodies; i++) {
+static void draw_vector_arrow(Vector2 vector, Vector2 position, Color color) {
         Vector2 horizontal = (Vector2){1.0f, 0.0f};
 
-        // Velocity arrow
-        float cos_v_rotation = Vector2DotProduct(horizontal, bodies[i].velocity)
-                               / Vector2Length(bodies[i].velocity);
-        float v_rotation = -acosf(cos_v_rotation) * RAD2DEG;
-        if (bodies[i].velocity.y > 0) {
-            v_rotation = 360.0f - v_rotation;
+        float cos_rotation = Vector2DotProduct(horizontal, vector) / Vector2Length(vector);
+        float rotation = -acosf(cos_rotation) * RAD2DEG;
+        if (vector.y > 0) {
+            rotation = 360.0f - rotation;
         }
-        Vector2 v_arrow_end = Vector2Add(bodies[i].position, bodies[i].velocity);
-        DrawLineEx(bodies[i].position, v_arrow_end, 2.0f, COLOR_VELOCITY_ARROW);
-        DrawPoly(v_arrow_end, 3, 4.5f, v_rotation, COLOR_VELOCITY_ARROW);
+        Vector2 arrow_end = Vector2Add(position, vector);
+        DrawLineEx(position, arrow_end, 2.0f, color);
+        DrawPoly(arrow_end, 3, 4.5f, rotation, color);
+}
 
-        // Acceleration arrow
-        float cos_a_rotation = Vector2DotProduct(horizontal, bodies[i].acceleration)
-                               / Vector2Length(bodies[i].acceleration);
-        float a_rotation = -acosf(cos_a_rotation) * RAD2DEG;
-        if (bodies[i].acceleration.y > 0) {
-            a_rotation = 360.0f - a_rotation;
-        }
-        Vector2 a_arrow_end = Vector2Add(bodies[i].position, bodies[i].acceleration);
-        DrawLineEx(bodies[i].position, a_arrow_end, 2.0f, COLOR_ACCELERATION_ARROW);
-        DrawPoly(a_arrow_end, 3, 4.5f, a_rotation, COLOR_ACCELERATION_ARROW);
+void draw_arrows(Body *bodies, int n_bodies) {
+    for (int i = 0; i < n_bodies; i++) {
+        draw_vector_arrow(bodies[i].velocity, bodies[i].position, COLOR_VELOCITY_ARROW);
+        draw_vector_arrow(bodies[i].acceleration, bodies[i].position, COLOR_ACCELERATION_ARROW);
     }
 }
 
@@ -165,13 +157,13 @@ void draw_trails(Body *bodies, int n_bodies, UI ui) {
     }
 }
 
-void translate_camera_on_m2(Camera2D *camera) {
+static void translate_camera_on_m2(Camera2D *camera) {
     Vector2 delta = GetMouseDelta();
     delta = Vector2Scale(delta, -1.0f/camera->zoom);
     camera->target = Vector2Add(camera->target, delta);
 }
 
-void zoom_camera_on_mouse_wheel(Camera2D *camera, float wheel) {
+static void zoom_camera_on_mouse_wheel(Camera2D *camera, float wheel) {
     Vector2 mouse_world_pos = GetScreenToWorld2D(GetMousePosition(), *camera);
     camera->offset = GetMousePosition();
     camera->target = mouse_world_pos;
@@ -182,11 +174,13 @@ void zoom_camera_on_mouse_wheel(Camera2D *camera, float wheel) {
 }
 
 void update_ui(UI *ui, Camera2D *camera) {
-    if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT))
+    if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT)) {
         translate_camera_on_m2(camera);
+    }
     float wheel = GetMouseWheelMove();
-    if (wheel != 0)
+    if (wheel != 0) {
         zoom_camera_on_mouse_wheel(camera, wheel);
+    }
 
     Vector2 mouse = GetMousePosition();
 

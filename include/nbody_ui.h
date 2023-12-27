@@ -62,14 +62,8 @@ void draw_arrows(Body *bodies, int n_bodies);
 // Draws the trail of the bodies, up to a maximum of points (MAX_TRAIL).
 void draw_trails(Body *bodies, int n_bodies, UI ui);
 
-// Move around the simulation using the mouse right button.
-void translate_camera_on_m2(Camera2D *camera);
-
-// Zoom in and out the simulation using the mouse wheel.
-void zoom_camera_on_mouse_wheel(Camera2D *camera, float wheel);
-
-// Updates the UI: calls translate_camera_on_m2(), zoom_camera_on_mouse_wheel(), and
-// updates button colors according to their state.
+// Updates the UI: translate camera on mouse right, zoom camera on mouse wheel,
+// and update button colors according to their state.
 void update_ui(UI *ui, Camera2D *camera);
 
 // Draws a button according to its values.
