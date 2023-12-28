@@ -19,14 +19,13 @@ int main(int argc, char **argv) {
     camera.zoom = 1.0f;
 
     UI ui = setup_ui();
-    Body *bodies = create_bodies(n_bodies);
+    Bodies bodies = create_bodies(n_bodies);
 
     while (!WindowShouldClose()) {
         if (!ui.is_paused) {
             for (int i = 0; i < ui.fast_forward_factor; i++) {
-                update_bodies(bodies, n_bodies);
-                apply_gravitational_forces(bodies, n_bodies,
-                                           GRAVIT_CONSTANT, handle_2d_collision);
+                update_bodies(&bodies);
+                apply_gravitational_forces(&bodies, GRAVIT_CONSTANT, handle_2d_collision);
             }
         }
 
@@ -37,12 +36,12 @@ int main(int argc, char **argv) {
             ClearBackground(COLOR_BACKGROUND);
             BeginMode2D(camera);
             {
-                draw_bodies(bodies, n_bodies, ui);
+                draw_bodies(bodies, ui);
                 if (ui.trails_on) {
-                    draw_trails(bodies, n_bodies, ui);
+                    draw_trails(bodies, ui);
                 }
                 if (ui.arrows_on) {
-                    draw_arrows(bodies, n_bodies);
+                    draw_arrows(bodies);
                 }
             }
             EndMode2D();
@@ -55,7 +54,7 @@ int main(int argc, char **argv) {
 
     unload_ui(&ui);
     CloseWindow();
-    bodies = destroy_bodies(bodies, n_bodies);
+    destroy_bodies(&bodies);
 
     return 0;
 }

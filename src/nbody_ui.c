@@ -116,9 +116,10 @@ void unload_ui(UI *ui) {
     }
 }
 
-void draw_bodies(Body *bodies, int n_bodies, UI ui) {
-    for (int i = 0; i < n_bodies; i++) {
-        DrawCircleV(bodies[i].position, bodies[i].radius, ui.body_colors[i % 10]);
+void draw_bodies(Bodies bodies, UI ui) {
+    for (size_t i = 0; i < bodies.count; i++) {
+        DrawCircleV(bodies.data[i].position, bodies.data[i].radius,
+                    ui.body_colors[i % 10]);
     }
 }
 
@@ -135,23 +136,25 @@ static void draw_vector_arrow(Vector2 vector, Vector2 position, Color color) {
         DrawPoly(arrow_end, 3, 4.5f, rotation, color);
 }
 
-void draw_arrows(Body *bodies, int n_bodies) {
-    for (int i = 0; i < n_bodies; i++) {
-        draw_vector_arrow(bodies[i].velocity, bodies[i].position, COLOR_VELOCITY_ARROW);
-        draw_vector_arrow(bodies[i].acceleration, bodies[i].position, COLOR_ACCELERATION_ARROW);
+void draw_arrows(Bodies bodies) {
+    for (size_t i = 0; i < bodies.count; i++) {
+        draw_vector_arrow(bodies.data[i].velocity, bodies.data[i].position,
+                          COLOR_VELOCITY_ARROW);
+        draw_vector_arrow(bodies.data[i].acceleration, bodies.data[i].position,
+                          COLOR_ACCELERATION_ARROW);
     }
 }
 
 #define mod(a, b) (((a) % (b) + (b)) % (b))
 
-void draw_trails(Body *bodies, int n_bodies, UI ui) {
-    for (int i = 0; i < n_bodies; i++) {
-        int trail_it = bodies[i].trail.iterator;
-        int count = bodies[i].trail.count;
+void draw_trails(Bodies bodies, UI ui) {
+    for (size_t i = 0; i < bodies.count; i++) {
+        int trail_it = bodies.data[i].trail.iterator;
+        int count = bodies.data[i].trail.count;
 
         for (int j = 1; j < count; j++) {
-            DrawLineV(bodies[i].trail.points[mod(trail_it + j, count)],
-                      bodies[i].trail.points[mod(trail_it + 1 + j, count)],
+            DrawLineV(bodies.data[i].trail.points[mod(trail_it + j, count)],
+                      bodies.data[i].trail.points[mod(trail_it + 1 + j, count)],
                       ui.body_colors[i % 10]);
         }
     }

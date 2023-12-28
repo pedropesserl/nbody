@@ -28,17 +28,28 @@ typedef struct Body {
     Trail trail;
 } Body;
 
-// Returns an array of bodies of size n_bodies with data passed from stdin.
+typedef struct Bodies {
+    Body *data;
+    size_t count;
+    size_t capacity;
+} Bodies;
+
+// Creates an empty array of bodies.
+#define MAX_TRAIL 1500
+Bodies create_bodies_array();
+
+Bodies create_bodies(int n_bodies);
+
+// Inserts a new body into the array of bodies.
 // The radius of each body is calculated as the cube root of its mass
 // (square cube law, assuming all densities are the same).
-#define MAX_TRAIL 1000
-Body *create_bodies(int n_bodies);
+void insert_body(Bodies *bodies, Body body);
 
 // Deallocates the memory for the bodies and returns NULL.
-void *destroy_bodies(Body *bodies, int n_bodies);
+void destroy_bodies(Bodies *bodies);
 
 // Applies velocity to position and acceleration to velocity in each body.
-void update_bodies(Body *bodies, int n_bodies);
+void update_bodies(Bodies *bodies);
 
 // Handles the colision between two 2D bodies, with the coefficient of
 // restitution as defined below.
@@ -50,7 +61,7 @@ void handle_2d_collision(Body *body1, Body *body2, float coeff_restitution);
 // If there was a collision between any two of the bodies involved, calls
 // collision_handler() on them.
 #define GRAVIT_CONSTANT 10.0f
-void apply_gravitational_forces(Body *bodies, int n_bodies, float G,
+void apply_gravitational_forces(Bodies *bodies, float G,
                                 void collision_handler(Body*, Body*, float));
 
 #endif // NBODY_SIMULATION_H_

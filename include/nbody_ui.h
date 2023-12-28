@@ -53,14 +53,14 @@ UI setup_ui(void);
 void unload_ui(UI *ui);
 
 // For each body, draws a circle of some color, if the body is on screen.
-void draw_bodies(Body *bodies, int n_bodies, UI ui);
+void draw_bodies(Bodies bodies, UI ui);
 
 // Draws arrows that represent the velocity and acceleration vectors of each body,
 // in white and grey respectively.
-void draw_arrows(Body *bodies, int n_bodies);
+void draw_arrows(Bodies bodies);
 
 // Draws the trail of the bodies, up to a maximum of points (MAX_TRAIL).
-void draw_trails(Body *bodies, int n_bodies, UI ui);
+void draw_trails(Bodies bodies, UI ui);
 
 // Updates the UI: translate camera on mouse right, zoom camera on mouse wheel,
 // and update button colors according to their state.

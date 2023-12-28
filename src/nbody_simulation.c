@@ -5,64 +5,83 @@
 #include "raymath.h"
 #include "nbody_simulation.h"
 
-Body *create_bodies(int n_bodies) {
-    Body *bodies = (Body*)malloc(n_bodies * sizeof(Body));
-    if (!bodies)
-        MEM_ERR;
+Bodies create_bodies_array() {
+    return (Bodies){0};
+}
+
+void insert_body(Bodies *bodies, Body body) {
+    if (bodies->capacity == 0) {
+        bodies->data = (Body*)calloc(1, sizeof(Body));
+        if (!bodies->data)
+            MEM_ERR;
+        bodies->capacity = 1;
+    }
+    if (bodies->count == bodies->capacity) {
+        bodies->capacity *= 2;
+        bodies->data = reallocarray(bodies->data, bodies->capacity, sizeof(Body));
+    }
+    bodies->data[bodies->count] = body;
+    bodies->count += 1;
+}
+
+Bodies create_bodies(int n_bodies) {
+    Bodies bodies = {0};
     
+    Body curr_body = {0};
     float i_pos_x, i_pos_y;
 
     for (int i = 0; i < n_bodies; i++) {
         printf("Body %d:\n", i);
         printf("    Mass: ");
-        scanf("%f", &(bodies[i].mass));
+        scanf("%f", &(curr_body.mass));
         printf("    Position (x): ");
         scanf("%f", &i_pos_x);
         printf("    Position (y): ");
         scanf("%f", &i_pos_y);
         printf("    Velocity (x): ");
-        scanf("%f", &(bodies[i].velocity.x));
+        scanf("%f", &(curr_body.velocity.x));
         printf("    Velocity (y): ");
-        scanf("%f", &(bodies[i].velocity.y));
-        bodies[i].radius = cbrtf(bodies[i].mass);
+        scanf("%f", &(curr_body.velocity.y));
+        curr_body.radius = cbrtf(curr_body.mass);
         // Make (0,0) the center of the screen
-        bodies[i].position = (Vector2){GetScreenWidth()/2 + i_pos_x,
+        curr_body.position = (Vector2){GetScreenWidth()/2 + i_pos_x,
                                        GetScreenHeight()/2 + i_pos_y};
-        bodies[i].acceleration = Vector2Zero();
-        bodies[i].trail.points = (Vector2*)malloc(MAX_TRAIL * sizeof(Vector2));
-        if (!bodies[i].trail.points)
+        curr_body.acceleration = Vector2Zero();
+        curr_body.trail.points = (Vector2*)malloc(MAX_TRAIL * sizeof(Vector2));
+        if (!curr_body.trail.points)
             MEM_ERR;
-        bodies[i].trail.points[0] = bodies[i].position;
-        bodies[i].trail.count = 1;
-        bodies[i].trail.iterator = 0;
+        curr_body.trail.points[0] = curr_body.position;
+        curr_body.trail.count = 1;
+        curr_body.trail.iterator = 0;
+
+        insert_body(&bodies, curr_body);
     }
 
     return bodies;
 }
 
-void *destroy_bodies(Body *bodies, int n_bodies) {
-    for (int i = 0; i < n_bodies; i++) {
-        free(bodies[i].trail.points);
+void destroy_bodies(Bodies *bodies) {
+    for (size_t i = 0; i < bodies->count; i++) {
+        free(bodies->data[i].trail.points);
     }
-    free(bodies);
-    return NULL;
+    free(bodies->data);
 }
 
-void update_bodies(Body *bodies, int n_bodies) {
+void update_bodies(Bodies *bodies) {
     float delta_time = GetFrameTime();
-    for (int i = 0; i < n_bodies; i++) {
-        Vector2 newpos = Vector2Add(bodies[i].position,
-                                    Vector2Scale(bodies[i].velocity, delta_time));
-        int trail_it = bodies[i].trail.iterator;
-        bodies[i].trail.points[(trail_it + 1) % MAX_TRAIL] = newpos;
-        bodies[i].trail.count += bodies[i].trail.count < MAX_TRAIL;
-        bodies[i].trail.iterator = (trail_it + 1) % MAX_TRAIL;
+    for (size_t i = 0; i < bodies->count; i++) {
+        Vector2 newpos = Vector2Add(bodies->data[i].position,
+                                    Vector2Scale(bodies->data[i].velocity, delta_time));
+        int trail_it = bodies->data[i].trail.iterator;
+        bodies->data[i].trail.points[(trail_it + 1) % MAX_TRAIL] = newpos;
+        bodies->data[i].trail.count += bodies->data[i].trail.count < MAX_TRAIL;
+        bodies->data[i].trail.iterator = (trail_it + 1) % MAX_TRAIL;
 
-        bodies[i].position = newpos;
-        bodies[i].velocity = Vector2Add(bodies[i].velocity,
-                                        Vector2Scale(bodies[i].acceleration,
-                                                     delta_time));
-        bodies[i].acceleration = Vector2Zero();
+        bodies->data[i].position = newpos;
+        bodies->data[i].velocity = Vector2Add(bodies->data[i].velocity,
+                                              Vector2Scale(bodies->data[i].acceleration,
+                                                           delta_time));
+        bodies->data[i].acceleration = Vector2Zero();
     }
 }
 
@@ -91,27 +110,28 @@ void handle_2d_collision(Body *body1, Body *body2, float coeff_restitution) {
                                                    scalar2));
 }
 
-void apply_gravitational_forces(Body *bodies, int n_bodies, float G,
+void apply_gravitational_forces(Bodies *bodies, float G,
                                 void collision_handler(Body*, Body*, float)) {
-    for (int i = 0; i < n_bodies; i++) {
-        for (int j = i+1; j < n_bodies; j++) {
-            if (CheckCollisionCircles(bodies[i].position, bodies[i].radius,
-                                      bodies[j].position, bodies[j].radius)) {
-                collision_handler(&(bodies[i]), &(bodies[j]), COEFF_RESTITUTION);
+    for (size_t i = 0; i < bodies->count; i++) {
+        for (size_t j = i+1; j < bodies->count; j++) {
+            if (CheckCollisionCircles(bodies->data[i].position, bodies->data[i].radius,
+                                      bodies->data[j].position, bodies->data[j].radius)) {
+                collision_handler(&(bodies->data[i]), &(bodies->data[j]),
+                                  COEFF_RESTITUTION);
             }
 
-            Vector2 r = Vector2Subtract(bodies[i].position, bodies[j].position);
+            Vector2 r = Vector2Subtract(bodies->data[i].position, bodies->data[j].position);
             float r_mag_sq = Vector2LengthSqr(r);
             float r_mag = sqrtf(r_mag_sq);
             Vector2 r_norm = (Vector2){r.x / r_mag, r.y / r_mag};
 
-            float acc_i_mag = bodies[j].mass / r_mag_sq * G;
-            float acc_j_mag = bodies[i].mass / r_mag_sq * G;
+            float acc_i_mag = bodies->data[j].mass / r_mag_sq * G;
+            float acc_j_mag = bodies->data[i].mass / r_mag_sq * G;
 
-            bodies[i].acceleration.x -= acc_i_mag * r_norm.x;
-            bodies[i].acceleration.y -= acc_i_mag * r_norm.y;
-            bodies[j].acceleration.x += acc_j_mag * r_norm.x;
-            bodies[j].acceleration.y += acc_j_mag * r_norm.y;
+            bodies->data[i].acceleration.x -= acc_i_mag * r_norm.x;
+            bodies->data[i].acceleration.y -= acc_i_mag * r_norm.y;
+            bodies->data[j].acceleration.x += acc_j_mag * r_norm.x;
+            bodies->data[j].acceleration.y += acc_j_mag * r_norm.y;
         }
     }
 }
