@@ -29,8 +29,8 @@ int main(int argc, char **argv) {
             }
         }
 
-        update_ui(&ui, &camera);
-
+        update_ui(&ui, &camera, &bodies);
+        
         BeginDrawing();
         {
             ClearBackground(COLOR_BACKGROUND);

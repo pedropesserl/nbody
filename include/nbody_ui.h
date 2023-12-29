@@ -52,7 +52,7 @@ UI setup_ui(void);
 // Unloads the textures loaded in setup_ui().
 void unload_ui(UI *ui);
 
-// For each body, draws a circle of some color, if the body is on screen.
+// For each body, draws a circle of some color.
 void draw_bodies(Bodies bodies, UI ui);
 
 // Draws arrows that represent the velocity and acceleration vectors of each body,
@@ -64,7 +64,7 @@ void draw_trails(Bodies bodies, UI ui);
 
 // Updates the UI: translate camera on mouse right, zoom camera on mouse wheel,
 // and update button colors according to their state.
-void update_ui(UI *ui, Camera2D *camera);
+void update_ui(UI *ui, Camera2D *camera, Bodies *bodies);
 
 // Draws a button according to its values.
 void draw_button(Button b, UI ui);

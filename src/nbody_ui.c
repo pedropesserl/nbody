@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "raylib.h"
 #include "raymath.h"
 #include "nbody_simulation.h"
@@ -176,7 +177,25 @@ static void zoom_camera_on_mouse_wheel(Camera2D *camera, float wheel) {
         camera->zoom = zoom_increment;
 }
 
-void update_ui(UI *ui, Camera2D *camera) {
+static Body create_body_with_popup(Vector2 position) {
+    Body new_body = {
+        .mass = 100.0f,
+        .radius = 0.0f, // radius is calculated based on mass
+        .position = position,
+        .velocity = (Vector2){0},
+        .acceleration = (Vector2){0},
+        .trail.points = (Vector2*)malloc(MAX_TRAIL * sizeof(Vector2)),
+        .trail.count = 1,
+        .trail.iterator = 0,
+    };
+    if (!new_body.trail.points)
+        MEM_ERR;
+    new_body.trail.points[0] = new_body.position;
+    new_body.radius = cbrtf(new_body.mass);
+    return new_body;
+}
+
+void update_ui(UI *ui, Camera2D *camera, Bodies *bodies) {
     if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT)) {
         translate_camera_on_m2(camera);
     }
@@ -196,10 +215,10 @@ void update_ui(UI *ui, Camera2D *camera) {
             ui->is_paused = !ui->is_paused;
             ui->play_pause.icon_index = (ui->play_pause.icon_index + 1) % 2;
         }
-    } else { // not hovering
-        ui->play_pause.color = ui->is_paused ? COLOR_HUD_BUTTON_PRESSED
-                                             : COLOR_HUD_BUTTON_INITIAL;
+        return;
     }
+    ui->play_pause.color = ui->is_paused ? COLOR_HUD_BUTTON_PRESSED
+                                         : COLOR_HUD_BUTTON_INITIAL;
 
     // Update toggle arrows button
     ui->toggle_arrows.box.x = HUD_BUTTON_MARGIN;
@@ -211,10 +230,10 @@ void update_ui(UI *ui, Camera2D *camera) {
             ui->arrows_on = !ui->arrows_on;
             ui->toggle_arrows.icon_index = (ui->toggle_arrows.icon_index + 1) % 2 + 2;
         }
-    } else { // not hovering
-        ui->toggle_arrows.color = ui->arrows_on ? COLOR_HUD_BUTTON_PRESSED
-                                                : COLOR_HUD_BUTTON_INITIAL;
+        return;
     }
+    ui->toggle_arrows.color = ui->arrows_on ? COLOR_HUD_BUTTON_PRESSED
+                                            : COLOR_HUD_BUTTON_INITIAL;
 
     // Update toggle trails button
     ui->toggle_trails.box.x = HUD_BUTTON_MARGIN;
@@ -225,9 +244,26 @@ void update_ui(UI *ui, Camera2D *camera) {
             ui->trails_on = !ui->trails_on;
             ui->toggle_trails.icon_index = (ui->toggle_trails.icon_index + 1) % 2 + 4;
         }
-    } else { // not hovering
-        ui->toggle_trails.color = ui->trails_on ? COLOR_HUD_BUTTON_PRESSED
-                                                : COLOR_HUD_BUTTON_INITIAL;
+        return;
+    }
+    ui->toggle_trails.color = ui->trails_on ? COLOR_HUD_BUTTON_PRESSED
+                                            : COLOR_HUD_BUTTON_INITIAL;
+
+    // Mouse is not on any button
+    Vector2 mouse_in_world = GetScreenToWorld2D(mouse, *camera);
+    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) { // clicked
+        bool body_will_collide = false;
+        Body new_body = create_body_with_popup(mouse_in_world);
+        for (size_t i = 0; i < bodies->count; i++) {
+            if (CheckCollisionCircles(mouse_in_world, new_body.radius,
+                                      bodies->data[i].position, bodies->data[i].radius)) {
+                body_will_collide = true;
+                break;
+            }
+        }
+        if (!body_will_collide) {
+            insert_body(bodies, new_body);
+        }
     }
 }
 
