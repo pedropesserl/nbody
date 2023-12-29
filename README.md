@@ -5,9 +5,15 @@ the library Raylib for the GUI.
 
 ## Quick Start
 
-### Install Raylib
+### Install [Raylib](https://raylib.com)
+
+#### On Linux
 
 https://github.com/raysan5/raylib/wiki/Working-on-GNU-Linux
+
+#### On Windows
+
+https://raysan5.itch.io/raylib/download/eyJpZCI6ODUzMzEsImV4cGlyZXMiOjE3MDM4MjE2MDF9%2eeHtu8IQLjDZOCRSj1JbuoS18Fbg%3d
 
 ### Compile
 
