@@ -3,9 +3,11 @@
 
 #include "raylib.h"
 
-#define USAGE do {                                                  \
-        fprintf(stderr, "Usage: %s <number_of_bodies>\n", argv[0]); \
-        exit(1);                                                    \
+#define USAGE do {                                                     \
+        fprintf(stderr, "Usage: %s\n", argv[0]);                       \
+        fprintf(stderr, "       OR\n");                                \
+        fprintf(stderr, "       %s -n <number_of_bodies>\n", argv[0]); \
+        exit(1);                                                       \
     } while (0)
 
 #define MEM_ERR do {                                                                    \

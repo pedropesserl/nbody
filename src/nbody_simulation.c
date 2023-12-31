@@ -31,16 +31,10 @@ Bodies create_bodies(int n_bodies) {
     float i_pos_x, i_pos_y;
 
     for (int i = 0; i < n_bodies; i++) {
-        printf("Body %d:\n", i);
-        printf("    Mass: ");
         scanf("%f", &(curr_body.mass));
-        printf("    Position (x): ");
         scanf("%f", &i_pos_x);
-        printf("    Position (y): ");
         scanf("%f", &i_pos_y);
-        printf("    Velocity (x): ");
         scanf("%f", &(curr_body.velocity.x));
-        printf("    Velocity (y): ");
         scanf("%f", &(curr_body.velocity.y));
         curr_body.radius = cbrtf(curr_body.mass);
         // Make (0,0) the center of the screen

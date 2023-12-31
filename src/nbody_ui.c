@@ -353,11 +353,9 @@ static void update_input_box(Input_Box *ib, Vector2 mouse_in_world, UI *ui) {
     }
     ib->confirm.color = COLOR_HUD_BUTTON_INITIAL;
 
-    bool mouse_is_on_text = false;
     for (int i = 0; i < MAX_FIELDS; i++) {
         Str_Input *field = &(ib->fields[i]);
         if (CheckCollisionPointRec(mouse_in_world, field->input_box)) { // hovering
-            mouse_is_on_text = true;
             field->color = COLOR_INPUT_FIELD_HOVERED;
             if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
                 field->is_selected = true;
@@ -398,12 +396,6 @@ static void update_input_box(Input_Box *ib, Vector2 mouse_in_world, UI *ui) {
                 field->input[field->char_count] = '\0';
             }
         }
-    }
-
-    if (mouse_is_on_text) {
-        SetMouseCursor(MOUSE_CURSOR_IBEAM);
-    } else {
-        SetMouseCursor(MOUSE_CURSOR_DEFAULT);
     }
 }
 

@@ -1,14 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "raylib.h"
 #include "raymath.h"
 #include "nbody_simulation.h"
 #include "nbody_ui.h"
 
 int main(int argc, char **argv) {
-    if (argc != 2)
+    if (argc == 2 || argc > 3 || (argc == 3 && strncmp("-n", argv[1], 2) != 0))
         USAGE;
-    int n_bodies = (int)strtol(argv[1], NULL, 10);
+    int n_bodies = argc == 1 ? 0 : (int)strtol(argv[2], NULL, 10);
 
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(1200, 900, "nbody");
