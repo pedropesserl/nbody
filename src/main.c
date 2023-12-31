@@ -43,6 +43,9 @@ int main(int argc, char **argv) {
                 if (ui.arrows_on) {
                     draw_arrows(bodies);
                 }
+                if (ui.body_input.active) {
+                    draw_input_box(ui.body_input, ui);
+                }
             }
             EndMode2D();
             DrawFPS(10, 10);

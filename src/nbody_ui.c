@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include "raylib.h"
 #include "raymath.h"
 #include "nbody_simulation.h"
@@ -27,7 +28,141 @@ void resize_image_to_rectangle(Image *image, Vector2 rectangle_size, float scale
             LoadImage("./img/icon_arrows_on.png"),  \
             LoadImage("./img/icon_trails_off.png"), \
             LoadImage("./img/icon_trails_on.png"),  \
+            LoadImage("./img/icon_confirm.png"),    \
+            LoadImage("./img/icon_cancel.png"),     \
         }
+
+Input_Box new_input_box(Vector2 position) {
+    float hud_space = 1.5f * INPUT_FIELD_MARGIN + HUD_SECONDARY_BUTTON_SIZE;
+    float fields_space = HUD_INPUT_BOX_HEIGHT - hud_space - INPUT_FIELD_MARGIN / 2.0f;
+    Vector2 field_boxes_positions[MAX_FIELDS] = {0};
+    for (int i = 0; i < MAX_FIELDS; i++) {
+        field_boxes_positions[i] = (Vector2){
+            .x = position.x + HUD_INPUT_BOX_WIDTH / 2.0f + INPUT_FIELD_MARGIN / 2.0f,
+            .y = position.y + hud_space + fields_space / MAX_FIELDS * i + INPUT_FIELD_MARGIN/2.0f
+        };
+    }
+
+   float field_box_width = HUD_INPUT_BOX_WIDTH / 2.0f - 1.5f * INPUT_FIELD_MARGIN;
+   float field_box_height = fields_space / MAX_FIELDS - INPUT_FIELD_MARGIN;
+
+   Input_Box ib = (Input_Box){
+        .box = (Rectangle){
+            .x = position.x,
+            .y = position.y,
+            .width = HUD_INPUT_BOX_WIDTH,
+            .height = HUD_INPUT_BOX_HEIGHT},
+        .roundness = 0.1f,
+        .color = COLOR_INPUT_BOX,
+        .has_border = true,
+        .border_color = COLOR_HUD_BUTTON_BORDER,
+        .border_thickness = 1.5f,
+        .fields[0] = (Str_Input){
+            .label = "Mass:\0",
+            .input = {0},
+            .input_box = (Rectangle) {
+                .x = field_boxes_positions[0].x,
+                .y = field_boxes_positions[0].y,
+                .width = field_box_width,
+                .height = field_box_height,
+            },
+            .roundness = 0.3f,
+            .is_selected = false,
+            .is_hovered = false,
+            .color = COLOR_INPUT_FIELD_INITIAL,
+            .input_value = 0.0f,
+            .char_count = 0,
+            .has_period = false,
+        },
+        .fields[1] = (Str_Input){
+            .label = "Velocity (x):\0",
+            .input = {0},
+            .input_box = (Rectangle) {
+                .x = field_boxes_positions[1].x,
+                .y = field_boxes_positions[1].y,
+                .width = field_box_width,
+                .height = field_box_height,
+            },
+            .roundness = 0.3f,
+            .is_selected = false,
+            .is_hovered = false,
+            .color = COLOR_INPUT_FIELD_INITIAL,
+            .input_value = 0.0f,
+            .char_count = 0,
+            .has_period = false,
+        },
+        .fields[2] = (Str_Input){
+            .label = "Velocity (y):\0",
+            .input = {0},
+            .input_box = (Rectangle) {
+                .x = field_boxes_positions[2].x,
+                .y = field_boxes_positions[2].y,
+                .width = field_box_width,
+                .height = field_box_height,
+            },
+            .roundness = 0.3f,
+            .is_selected = false,
+            .is_hovered = false,
+            .color = COLOR_INPUT_FIELD_INITIAL,
+            .input_value = 0.0f,
+            .char_count = 0,
+            .has_period = false,
+        },
+        .confirm = (Button){
+            .box = (Rectangle){
+                .x = position.x + HUD_INPUT_BOX_WIDTH - 2*HUD_SECONDARY_BUTTON_SIZE
+                     - 2*INPUT_FIELD_MARGIN,
+                .y = position.y + INPUT_FIELD_MARGIN,
+                .width = HUD_SECONDARY_BUTTON_SIZE,
+                .height = HUD_SECONDARY_BUTTON_SIZE
+            },
+            .icon_index = 6,
+            .roundness = 0.3f,
+            .is_pressed = false,
+            .is_hovered = false,
+            .color = COLOR_HUD_BUTTON_INITIAL,
+            .has_border = true,
+            .border_color = COLOR_HUD_BUTTON_BORDER,
+            .border_thickness = 2.0f,
+        },
+        .cancel = (Button){
+            .box = (Rectangle){
+                .x = position.x + HUD_INPUT_BOX_WIDTH - HUD_SECONDARY_BUTTON_SIZE
+                     - INPUT_FIELD_MARGIN,
+                .y = position.y + INPUT_FIELD_MARGIN,
+                .width = HUD_SECONDARY_BUTTON_SIZE,
+                .height = HUD_SECONDARY_BUTTON_SIZE
+            },
+            .icon_index = 7,
+            .roundness = 0.3f,
+            .is_pressed = false,
+            .is_hovered = false,
+            .color = COLOR_HUD_BUTTON_INITIAL,
+            .has_border = true,
+            .border_color = COLOR_HUD_BUTTON_BORDER,
+            .border_thickness = 2.0f,
+        },
+        .active = true,
+    };
+
+    return ib;
+}
+
+static Input_Box create_input_box_with_mouse(Vector2 mouse) {
+    if (mouse.x < GetScreenWidth()/2) {
+        if (mouse.y < GetScreenHeight()/2) {
+            return new_input_box(mouse);
+        }
+        return new_input_box((Vector2){mouse.x,
+                                       mouse.y - HUD_INPUT_BOX_HEIGHT});
+    }
+    if (mouse.y < GetScreenHeight()/2) {
+        return new_input_box((Vector2){mouse.x - HUD_INPUT_BOX_WIDTH,
+                                       mouse.y});
+    }
+    return new_input_box((Vector2){mouse.x - HUD_INPUT_BOX_WIDTH,
+                                   mouse.y - HUD_INPUT_BOX_HEIGHT});
+}
 
 UI setup_ui(void) {
     UI ui = {
@@ -84,22 +219,29 @@ UI setup_ui(void) {
             .border_color = COLOR_HUD_BUTTON_BORDER,
             .border_thickness = 2.0f,
         },
-        .icons = {{0}} // initialized after we load and resize the images
+        .body_input = new_input_box(Vector2Zero()),
+        .position_to_generate_body = Vector2Zero(),
+        .generated_body_with_input = false,
+        .icons = {{0}}, // initialized after we load and resize the images
     };
+    ui.body_input.active = false;
 
     Image icons_img[ICON_COUNT] = LOAD_ICONS;
-    Vector2 play_pause_size = (Vector2) { ui.play_pause.box.width,
-                                          ui.play_pause.box.height };
-    Vector2 toggle_arrows_size = (Vector2){ ui.toggle_arrows.box.width,
-                                            ui.toggle_arrows.box.height };
-    Vector2 toggle_trails_size = (Vector2){ ui.toggle_trails.box.width,
-                                            ui.toggle_trails.box.height };
+    Vector2 play_pause_size = (Vector2) { HUD_SECONDARY_BUTTON_SIZE,
+                                          HUD_SECONDARY_BUTTON_SIZE };
+    Vector2 confirm_size = play_pause_size;
+    Vector2 cancel_size = play_pause_size;
+    Vector2 toggle_arrows_size = (Vector2){ HUD_PRIMARY_BUTTON_SIZE,
+                                            HUD_PRIMARY_BUTTON_SIZE };
+    Vector2 toggle_trails_size = toggle_arrows_size;
     resize_image_to_rectangle(&(icons_img[0]), play_pause_size, 0.6f);
     resize_image_to_rectangle(&(icons_img[1]), play_pause_size, 0.6f);
     resize_image_to_rectangle(&(icons_img[2]), toggle_arrows_size, 0.8f);
     resize_image_to_rectangle(&(icons_img[3]), toggle_arrows_size, 0.8f);
     resize_image_to_rectangle(&(icons_img[4]), toggle_trails_size, 0.8f);
     resize_image_to_rectangle(&(icons_img[5]), toggle_trails_size, 0.8f);
+    resize_image_to_rectangle(&(icons_img[6]), confirm_size, 0.85f);
+    resize_image_to_rectangle(&(icons_img[7]), cancel_size, 0.7f);
     for (int i = 0; i < ICON_COUNT; i++) {
         ui.icons[i] = LoadTextureFromImage(icons_img[i]);
         UnloadImage(icons_img[i]);
@@ -107,6 +249,8 @@ UI setup_ui(void) {
     ui.play_pause.icon_index = 0;
     ui.toggle_arrows.icon_index = 2;
     ui.toggle_trails.icon_index = 4;
+    ui.body_input.confirm.icon_index = 6;
+    ui.body_input.cancel.icon_index = 7;
 
     return ui;
 }
@@ -177,13 +321,102 @@ static void zoom_camera_on_mouse_wheel(Camera2D *camera, float wheel) {
         camera->zoom = zoom_increment;
 }
 
-static Body create_body_with_popup(Vector2 position) {
+static void update_input_box(Input_Box *ib, Vector2 mouse_in_world, UI *ui) {
+    if (!ib->active) {
+        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+            *ib = create_input_box_with_mouse(mouse_in_world);
+            ui->position_to_generate_body = mouse_in_world;
+        }
+        return;
+    }
+
+    if (CheckCollisionPointRec(mouse_in_world, ib->cancel.box)) { // hovering
+        ib->cancel.color = COLOR_HUD_BUTTON_HOVERED;
+        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) { // clicked
+            ib->active = false;
+        }
+        return;
+    }
+    ib->cancel.color = COLOR_HUD_BUTTON_INITIAL;
+
+    if (CheckCollisionPointRec(mouse_in_world, ib->confirm.box)) { // hovering
+        ib->confirm.color = COLOR_HUD_BUTTON_HOVERED;
+        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) { // clicked
+            ui->generated_body_with_input = false;
+            ib->active = false;
+            // parse input
+            for (int i = 0; i < MAX_FIELDS; i++) {
+                ib->fields[i].input_value = strtof(ib->fields[i].input, NULL);
+            }
+        }
+        return;
+    }
+    ib->confirm.color = COLOR_HUD_BUTTON_INITIAL;
+
+    bool mouse_is_on_text = false;
+    for (int i = 0; i < MAX_FIELDS; i++) {
+        Str_Input *field = &(ib->fields[i]);
+        if (CheckCollisionPointRec(mouse_in_world, field->input_box)) { // hovering
+            mouse_is_on_text = true;
+            field->color = COLOR_INPUT_FIELD_HOVERED;
+            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+                field->is_selected = true;
+                for (int j = 0; j < i; j++) {
+                    ib->fields[j].is_selected = false;
+                }
+                for (int j = i+1; j < MAX_FIELDS; j++) {
+                    ib->fields[j].is_selected = false;
+                }
+            }
+        } else if (!field->is_selected) { // not hovering and not selected
+            field->color = COLOR_INPUT_FIELD_INITIAL;
+        }
+
+        if (field->is_selected) { // entering text
+            char c = (char)GetCharPressed();
+            // Check if more characters have been pressed on the same frame
+            while (c > 0) {
+                if (field->char_count >= MAX_INPUT_CHARACTERS)
+                    break;
+                if ((c == '-' && field->char_count == 0)
+                    || (!field->has_period && (isdigit(c) || c == '.'))
+                    || (field->has_period && isdigit(c))) {
+
+                    field->input[field->char_count] = c;
+                    field->input[field->char_count + 1] = '\0';
+                    field->char_count += 1;
+                }
+                field->has_period |= c == '.';
+                c = GetCharPressed();
+            }
+
+            if (IsKeyPressed(KEY_BACKSPACE)) {
+                field->char_count -= field->char_count > 0;
+                if (field->input[field->char_count] == '.') {
+                    field->has_period = false;
+                }
+                field->input[field->char_count] = '\0';
+            }
+        }
+    }
+
+    if (mouse_is_on_text) {
+        SetMouseCursor(MOUSE_CURSOR_IBEAM);
+    } else {
+        SetMouseCursor(MOUSE_CURSOR_DEFAULT);
+    }
+}
+
+static Body create_body_with_input_box(Input_Box ib, Vector2 position) {
+    float mass = ib.fields[0].input_value;
+    float velocity_x = ib.fields[1].input_value;
+    float velocity_y = ib.fields[2].input_value;
     Body new_body = {
-        .mass = 100.0f,
+        .mass = mass,
         .radius = 0.0f, // radius is calculated based on mass
         .position = position,
-        .velocity = (Vector2){0},
-        .acceleration = (Vector2){0},
+        .velocity = (Vector2){velocity_x, velocity_y},
+        .acceleration = Vector2Zero(),
         .trail.points = (Vector2*)malloc(MAX_TRAIL * sizeof(Vector2)),
         .trail.count = 1,
         .trail.iterator = 0,
@@ -250,20 +483,27 @@ void update_ui(UI *ui, Camera2D *camera, Bodies *bodies) {
                                             : COLOR_HUD_BUTTON_INITIAL;
 
     // Mouse is not on any button
-    Vector2 mouse_in_world = GetScreenToWorld2D(mouse, *camera);
-    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) { // clicked
-        bool body_will_collide = false;
-        Body new_body = create_body_with_popup(mouse_in_world);
-        for (size_t i = 0; i < bodies->count; i++) {
-            if (CheckCollisionCircles(mouse_in_world, new_body.radius,
-                                      bodies->data[i].position, bodies->data[i].radius)) {
-                body_will_collide = true;
-                break;
-            }
+    update_input_box(&(ui->body_input), GetScreenToWorld2D(mouse, *camera), ui);
+
+    if (ui->generated_body_with_input)
+        return;
+
+    bool body_will_collide = false;
+    Body new_body = create_body_with_input_box(ui->body_input, ui->position_to_generate_body);
+    ui->generated_body_with_input = true;
+    if (new_body.mass <= 0.0f) {
+        free(new_body.trail.points);
+        return;
+    }
+    for (size_t i = 0; i < bodies->count; i++) {
+        if (CheckCollisionCircles(ui->position_to_generate_body, new_body.radius,
+                                  bodies->data[i].position, bodies->data[i].radius)) {
+            body_will_collide = true;
+            break;
         }
-        if (!body_will_collide) {
-            insert_body(bodies, new_body);
-        }
+    }
+    if (!body_will_collide) {
+        insert_body(bodies, new_body);
     }
 }
 
@@ -282,6 +522,34 @@ void draw_button(Button b, UI ui) {
         .y = b.box.y + (b.box.height - ui.icons[b.icon_index].height) / 2.0f,
     };
     DrawTextureV(ui.icons[b.icon_index], texture_pos, WHITE);
+}
+
+void draw_input_box(Input_Box ib, UI ui) {
+    const int segments = 20;
+    
+    DrawRectangleRounded(ib.box, ib.roundness, segments, ib.color);
+    if (ib.has_border) {
+        DrawRectangleRoundedLines(ib.box, ib.roundness, segments,
+                                  ib.border_thickness, ib.border_color);
+    }
+
+    draw_button(ib.confirm, ui);
+    draw_button(ib.cancel, ui);
+
+    int font_size = (int)ib.fields[0].input_box.height - 6;
+    
+    for (int i = 0; i < MAX_FIELDS; i++) {
+        DrawText(ib.fields[i].label, (int)(ib.box.x + INPUT_FIELD_MARGIN),
+                 ib.fields[i].input_box.y + 3, font_size, WHITE);
+        DrawRectangleRounded(ib.fields[i].input_box, ib.fields[i].roundness, segments,
+                             ib.fields[i].color);
+        if (ib.fields[i].is_selected) {
+            DrawRectangleRoundedLines(ib.fields[i].input_box, ib.fields[i].roundness,
+                                      segments, 2.0f, ib.border_color);
+        }
+        DrawText(ib.fields[i].input, ib.fields[i].input_box.x + 4,
+                 ib.fields[i].input_box.y + 4, font_size, WHITE);
+    }
 }
 
 void draw_ui(UI ui) {
