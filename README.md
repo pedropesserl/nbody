@@ -3,7 +3,7 @@
 This is a simulation of the n-body problem in physics. It is written in C and it uses
 the library Raylib for the GUI.
 
-<img src="example.gif" width="350">
+<img src="example.gif" width="700">
 
 ## Quick Start
 
