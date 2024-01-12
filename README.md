@@ -5,27 +5,28 @@ the library Raylib for the GUI.
 
 <img src="example.gif" width="700">
 
-## Quick Start
+### Quick Start
 
-### Install [Raylib](https://raylib.com)
+#### Install [Raylib](https://raylib.com)
 
-#### On Linux
+- On Linux: https://github.com/raysan5/raylib/wiki/Working-on-GNU-Linux
+- On Windows: https://raysan5.itch.io/raylib/download/eyJpZCI6ODUzMzEsImV4cGlyZXMiOjE3MDM4MjE2MDF9%2eeHtu8IQLjDZOCRSj1JbuoS18Fbg%3d
 
-https://github.com/raysan5/raylib/wiki/Working-on-GNU-Linux
-
-#### On Windows
-
-https://raysan5.itch.io/raylib/download/eyJpZCI6ODUzMzEsImV4cGlyZXMiOjE3MDM4MjE2MDF9%2eeHtu8IQLjDZOCRSj1JbuoS18Fbg%3d
-
-### Compile
+#### Compile
 
 ```bash
 $ git clone https://github.com/pedropesserl/nbody.git
 $ make
 ```
 
-## Usage
+### Usage
 
 - `$ ./nbody` - Make an empty space and fill it with bodies by clicking the screen.
 
 - `$ ./nbody -n <number_of_bodies>` - Pre-fill the space with bodies by writing the data about them in stdin: mass, position (x), position (y), velocity (x), velocity (y).
+
+### Sources
+
+- https://www.raylib.com/examples.html
+- https://en.wikipedia.org/wiki/Elastic_collision#Two-dimensional
+- https://youtube.com/@TsodingDaily

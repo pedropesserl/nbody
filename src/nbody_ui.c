@@ -220,8 +220,8 @@ UI setup_ui(void) {
             .border_thickness = 2.0f,
         },
         .body_input = new_input_box(Vector2Zero()),
-        .position_to_generate_body = Vector2Zero(),
-        .generated_body_with_input = false,
+        .position_to_create_body = Vector2Zero(),
+        .created_body_with_input = false,
         .icons = {{0}}, // initialized after we load and resize the images
     };
     ui.body_input.active = false;
@@ -325,7 +325,7 @@ static void update_input_box(Input_Box *ib, Vector2 mouse_in_world, UI *ui) {
     if (!ib->active) {
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
             *ib = create_input_box_with_mouse(mouse_in_world);
-            ui->position_to_generate_body = mouse_in_world;
+            ui->position_to_create_body = mouse_in_world;
         }
         return;
     }
@@ -342,7 +342,7 @@ static void update_input_box(Input_Box *ib, Vector2 mouse_in_world, UI *ui) {
     if (CheckCollisionPointRec(mouse_in_world, ib->confirm.box)) { // hovering
         ib->confirm.color = COLOR_HUD_BUTTON_HOVERED;
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) { // clicked
-            ui->generated_body_with_input = false;
+            ui->created_body_with_input = false;
             ib->active = false;
             // parse input
             for (int i = 0; i < MAX_FIELDS; i++) {
@@ -413,8 +413,9 @@ static Body create_body_with_input_box(Input_Box ib, Vector2 position) {
         .trail.count = 1,
         .trail.iterator = 0,
     };
-    if (!new_body.trail.points)
+    if (!new_body.trail.points) {
         MEM_ERR;
+    }
     new_body.trail.points[0] = new_body.position;
     new_body.radius = cbrtf(new_body.mass);
     return new_body;
@@ -477,18 +478,19 @@ void update_ui(UI *ui, Camera2D *camera, Bodies *bodies) {
     // Mouse is not on any button
     update_input_box(&(ui->body_input), GetScreenToWorld2D(mouse, *camera), ui);
 
-    if (ui->generated_body_with_input)
+    if (ui->created_body_with_input) {
         return;
+    }
 
     bool body_will_collide = false;
-    Body new_body = create_body_with_input_box(ui->body_input, ui->position_to_generate_body);
-    ui->generated_body_with_input = true;
+    Body new_body = create_body_with_input_box(ui->body_input, ui->position_to_create_body);
+    ui->created_body_with_input = true;
     if (new_body.mass <= 0.0f) {
         free(new_body.trail.points);
         return;
     }
     for (size_t i = 0; i < bodies->count; i++) {
-        if (CheckCollisionCircles(ui->position_to_generate_body, new_body.radius,
+        if (CheckCollisionCircles(ui->position_to_create_body, new_body.radius,
                                   bodies->data[i].position, bodies->data[i].radius)) {
             body_will_collide = true;
             break;

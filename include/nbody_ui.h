@@ -76,8 +76,8 @@ typedef struct UI {
     Button toggle_arrows;
     Button toggle_trails;
     Input_Box body_input;
-    Vector2 position_to_generate_body;
-    bool generated_body_with_input;
+    Vector2 position_to_create_body;
+    bool created_body_with_input;
     Texture2D icons[ICON_COUNT];
 } UI;
 

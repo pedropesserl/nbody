@@ -12,8 +12,9 @@ Bodies create_bodies_array() {
 void insert_body(Bodies *bodies, Body body) {
     if (bodies->capacity == 0) {
         bodies->data = (Body*)calloc(1, sizeof(Body));
-        if (!bodies->data)
+        if (!bodies->data) {
             MEM_ERR;
+        }
         bodies->capacity = 1;
     }
     if (bodies->count == bodies->capacity) {
@@ -42,8 +43,9 @@ Bodies create_bodies(int n_bodies) {
                                        GetScreenHeight()/2 + i_pos_y};
         curr_body.acceleration = Vector2Zero();
         curr_body.trail.points = (Vector2*)malloc(MAX_TRAIL * sizeof(Vector2));
-        if (!curr_body.trail.points)
+        if (!curr_body.trail.points) {
             MEM_ERR;
+        }
         curr_body.trail.points[0] = curr_body.position;
         curr_body.trail.count = 1;
         curr_body.trail.iterator = 0;
@@ -79,9 +81,12 @@ void update_bodies(Bodies *bodies) {
     }
 }
 
+bool check_collision_bodies(Body body1, Body body2) {
+    return CheckCollisionCircles(body1.position, body1.radius, body2.position, body2.radius);
+}
+
 void handle_2d_collision(Body *body1, Body *body2, float coeff_restitution) {
     // https://en.wikipedia.org/wiki/Elastic_collision#Two-dimensional
-
     float sum_masses        = body1->mass + body2->mass;
     Vector2 diff_velocities = Vector2Subtract(body1->velocity, body2->velocity);
     Vector2 diff_positions  = Vector2Subtract(body1->position, body2->position);
@@ -108,8 +113,7 @@ void apply_gravitational_forces(Bodies *bodies, float G,
                                 void collision_handler(Body*, Body*, float)) {
     for (size_t i = 0; i < bodies->count; i++) {
         for (size_t j = i+1; j < bodies->count; j++) {
-            if (CheckCollisionCircles(bodies->data[i].position, bodies->data[i].radius,
-                                      bodies->data[j].position, bodies->data[j].radius)) {
+            if (check_collision_bodies(bodies->data[i], bodies->data[j])) {
                 collision_handler(&(bodies->data[i]), &(bodies->data[j]),
                                   COEFF_RESTITUTION);
             }
