@@ -332,7 +332,7 @@ static void update_input_box(Input_Box *ib, Vector2 mouse_in_world, UI *ui) {
 
     if (CheckCollisionPointRec(mouse_in_world, ib->cancel.box)) { // hovering
         ib->cancel.color = COLOR_HUD_BUTTON_HOVERED;
-        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) { // clicked
+        if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) { // clicked
             ib->active = false;
         }
         return;
@@ -341,7 +341,7 @@ static void update_input_box(Input_Box *ib, Vector2 mouse_in_world, UI *ui) {
 
     if (CheckCollisionPointRec(mouse_in_world, ib->confirm.box)) { // hovering
         ib->confirm.color = COLOR_HUD_BUTTON_HOVERED;
-        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) { // clicked
+        if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) { // clicked
             ui->created_body_with_input = false;
             ib->active = false;
             // parse input
@@ -357,7 +357,7 @@ static void update_input_box(Input_Box *ib, Vector2 mouse_in_world, UI *ui) {
         Str_Input *field = &(ib->fields[i]);
         if (CheckCollisionPointRec(mouse_in_world, field->input_box)) { // hovering
             field->color = COLOR_INPUT_FIELD_HOVERED;
-            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+            if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) { // clicked
                 field->is_selected = true;
                 for (int j = 0; j < i; j++) {
                     ib->fields[j].is_selected = false;
@@ -437,7 +437,7 @@ void update_ui(UI *ui, Camera2D *camera, Bodies *bodies) {
     ui->play_pause.box.y = HUD_BUTTON_MARGIN;
     if (CheckCollisionPointRec(mouse, ui->play_pause.box)) { // hovering
         ui->play_pause.color = COLOR_HUD_BUTTON_HOVERED;
-        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {  // clicked
+        if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {  // clicked
             ui->is_paused = !ui->is_paused;
             ui->play_pause.icon_index = (ui->play_pause.icon_index + 1) % 2;
         }
@@ -452,7 +452,7 @@ void update_ui(UI *ui, Camera2D *camera, Bodies *bodies) {
                               - HUD_BUTTON_MARGIN/2.0f - HUD_PRIMARY_BUTTON_SIZE;
     if (CheckCollisionPointRec(mouse, ui->toggle_arrows.box)) { // hovering
         ui->toggle_arrows.color = COLOR_HUD_BUTTON_HOVERED;
-        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {  // clicked
+        if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {  // clicked
             ui->arrows_on = !ui->arrows_on;
             ui->toggle_arrows.icon_index = (ui->toggle_arrows.icon_index + 1) % 2 + 2;
         }
@@ -466,7 +466,7 @@ void update_ui(UI *ui, Camera2D *camera, Bodies *bodies) {
     ui->toggle_trails.box.y = (float)GetScreenHeight()/2.0f + HUD_BUTTON_MARGIN/2.0f;
     if (CheckCollisionPointRec(mouse, ui->toggle_trails.box)) { // hovering
         ui->toggle_trails.color = COLOR_HUD_BUTTON_HOVERED;
-        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {  // clicked
+        if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {  // clicked
             ui->trails_on = !ui->trails_on;
             ui->toggle_trails.icon_index = (ui->toggle_trails.icon_index + 1) % 2 + 4;
         }

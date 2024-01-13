@@ -17,6 +17,7 @@ DEPS = $(_DEPS:%=$(IDIR)/%)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 all: $(PROGRAM)
+all: clean
 
 $(PROGRAM): $(OBJ)
 	$(CC) -o $@ $^ $(LFLAGS)
