@@ -43,7 +43,7 @@ typedef struct Bodies {
 // Creates an empty array of bodies.
 Bodies create_bodies_array();
 
-Bodies create_bodies(int n_bodies);
+Bodies create_bodies(int n_bodies, int screen_width, int screen_height);
 
 // Inserts a new body into the array of bodies.
 // The radius of each body is calculated as the cube root of its mass

@@ -11,6 +11,8 @@ int main(int argc, char **argv) {
         USAGE;
     int n_bodies = argc == 1 ? 0 : (int)strtol(argv[2], NULL, 10);
 
+    Bodies bodies = create_bodies(n_bodies, 1200, 900);
+
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(1200, 900, "nbody");
     SetWindowState(FLAG_VSYNC_HINT);
@@ -20,7 +22,6 @@ int main(int argc, char **argv) {
     camera.zoom = 1.0f;
 
     UI ui = setup_ui();
-    Bodies bodies = create_bodies(n_bodies);
 
     while (!WindowShouldClose()) {
         if (!ui.is_paused) {

@@ -25,7 +25,7 @@ void insert_body(Bodies *bodies, Body body) {
     bodies->count += 1;
 }
 
-Bodies create_bodies(int n_bodies) {
+Bodies create_bodies(int n_bodies, int screen_width, int screen_height) {
     Bodies bodies = {0};
     
     Body curr_body = {0};
@@ -39,8 +39,8 @@ Bodies create_bodies(int n_bodies) {
         scanf("%f", &(curr_body.velocity.y));
         curr_body.radius = cbrtf(curr_body.mass);
         // Make (0,0) the center of the screen
-        curr_body.position = (Vector2){GetScreenWidth()/2 + i_pos_x,
-                                       GetScreenHeight()/2 + i_pos_y};
+        curr_body.position = (Vector2){screen_width/2 + i_pos_x,
+                                       screen_height/2 + i_pos_y};
         curr_body.acceleration = Vector2Zero();
         curr_body.trail.points = (Vector2*)malloc(MAX_TRAIL * sizeof(Vector2));
         if (!curr_body.trail.points) {

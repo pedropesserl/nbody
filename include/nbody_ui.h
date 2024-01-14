@@ -28,9 +28,35 @@
 #define MAX_INPUT_CHARACTERS 10
 #define MAX_FIELDS 3
 
+typedef enum Icon_Index {
+    ICON_IDX_PAUSE = 0,
+    ICON_IDX_PLAY = 1,
+    ICON_IDX_ARROWS_OFF = 2,
+    ICON_IDX_ARROWS_ON = 3,
+    ICON_IDX_TRAILS_OFF = 4,
+    ICON_IDX_TRAILS_ON = 5,
+    ICON_IDX_CONFIRM = 6,
+    ICON_IDX_CANCEL = 7,
+} Icon_Index;
+
+typedef enum Button_ID {
+    BUTTON_PLAY_PAUSE = 0,
+    BUTTON_TOGGLE_ARROWS = 1,
+    BUTTON_TOGGLE_TRAILS = 2,
+    BUTTON_CONFIRM = 3,
+    BUTTON_CANCEL = 4,
+} Button_ID;
+
+typedef enum Button_Type {
+    BUTTON_PRIMARY = 0,
+    BUTTON_SECONDARY = 1,
+} Button_Type;
+
 typedef struct Button {
+    Button_ID id;
+    Button_Type type;
     Rectangle box;
-    int icon_index;
+    Icon_Index icon_index;
     float roundness;
     bool is_pressed;
     bool is_hovered;
@@ -85,7 +111,14 @@ typedef struct UI {
 // sides scaled by scale.
 void resize_image_to_rectangle(Image *image, Vector2 rectangle_size, float scale);
 
-// Returns a new input box with the specified position.
+// Returns a new button with the indicated id an type, at the indicated position.
+Button new_button(Button_ID id, Button_Type type, Vector2 position);
+
+// Returns a new string input with the indicated label of length lable_len,
+// at position pos and with size size.
+Str_Input new_string_input(const char *label, size_t lable_len, Vector2 pos, Vector2 size);
+
+// Returns a new input box at the specified position.
 Input_Box new_input_box(Vector2 position);
 
 // Sets up and returns an UI structure with all of its initial values, and
