@@ -52,7 +52,6 @@ Button new_button(Button_ID id, Button_Type type, Vector2 position) {
         .border_color = COLOR_HUD_BUTTON_BORDER,
         .border_thickness = 2.0f,
     };
-
     switch (type) {
         case BUTTON_PRIMARY:
             b.box.width = HUD_PRIMARY_BUTTON_SIZE;
@@ -63,7 +62,6 @@ Button new_button(Button_ID id, Button_Type type, Vector2 position) {
             b.box.height = HUD_SECONDARY_BUTTON_SIZE;
             break;
     }
-
     switch (id) {
         case BUTTON_PLAY_PAUSE:    b.icon_index = ICON_IDX_PAUSE;      break;
         case BUTTON_TOGGLE_ARROWS: b.icon_index = ICON_IDX_ARROWS_OFF; break;
@@ -71,7 +69,6 @@ Button new_button(Button_ID id, Button_Type type, Vector2 position) {
         case BUTTON_CONFIRM:       b.icon_index = ICON_IDX_CONFIRM;    break;
         case BUTTON_CANCEL:        b.icon_index = ICON_IDX_CANCEL;     break;
     }
-
     return b;
 }
 
@@ -387,6 +384,43 @@ static Body create_body_with_input_box(Input_Box ib, Vector2 position) {
     return new_body;
 }
 
+bool update_button_with_mouse(Button *button, Button_ID id, Vector2 mouse, UI *ui) {
+    bool mouse_is_on_button = false;
+    bool *associated_value;
+    Icon_Index icon_active;
+    Icon_Index icon_inactive;
+    switch (id) {
+        case BUTTON_PLAY_PAUSE:
+            associated_value = &(ui->is_paused);
+            icon_active = ICON_IDX_PLAY;
+            icon_inactive = ICON_IDX_PAUSE;
+            break;
+        case BUTTON_TOGGLE_ARROWS:
+            associated_value = &(ui->arrows_on);
+            icon_active = ICON_IDX_ARROWS_ON;
+            icon_inactive = ICON_IDX_ARROWS_OFF;
+            break;
+        case BUTTON_TOGGLE_TRAILS:
+            associated_value = &(ui->trails_on);
+            icon_active = ICON_IDX_TRAILS_ON;
+            icon_inactive = ICON_IDX_TRAILS_OFF;
+            break;
+        default:
+            return false;
+    }
+    if (CheckCollisionPointRec(mouse, button->box)) { // hovering
+        mouse_is_on_button = true;
+        button->color = COLOR_HUD_BUTTON_HOVERED;
+        if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {  // clicked
+            *associated_value = !(*associated_value);
+        }
+    } else {
+        button->color = *associated_value ? COLOR_HUD_BUTTON_PRESSED : COLOR_HUD_BUTTON_INITIAL;
+    }
+    button->icon_index = *associated_value ? icon_active : icon_inactive;
+    return mouse_is_on_button;
+}
+
 void update_ui(UI *ui, Camera2D *camera, Bodies *bodies) {
     if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT)) {
         translate_camera_on_m2(camera);
@@ -396,66 +430,38 @@ void update_ui(UI *ui, Camera2D *camera, Bodies *bodies) {
         zoom_camera_on_mouse_wheel(camera, wheel);
     }
 
+    if (IsKeyPressed(KEY_SPACE)) {
+        ui->is_paused = !ui->is_paused;
+    }
+    if (IsKeyPressed(KEY_A)) {
+        ui->arrows_on = !ui->arrows_on;
+    }
+    if (IsKeyPressed(KEY_T)) {
+        ui->trails_on = !ui->trails_on;
+    }
+
     Vector2 mouse = GetMousePosition();
+    bool mouse_is_on_button = false;
 
     // Update play/pause button
     ui->play_pause.box.x = (float)GetScreenWidth()/2.0f - HUD_SECONDARY_BUTTON_SIZE/2.0f;
     ui->play_pause.box.y = HUD_BUTTON_MARGIN;
-    if (CheckCollisionPointRec(mouse, ui->play_pause.box)) { // hovering
-        ui->play_pause.color = COLOR_HUD_BUTTON_HOVERED;
-        if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {  // clicked
-            ui->is_paused = !ui->is_paused;
-        }
-        ui->play_pause.icon_index = ui->is_paused ? ICON_IDX_PLAY : ICON_IDX_PAUSE;
-        return;
-    }
-    if (ui->is_paused) {
-        ui->play_pause.color = COLOR_HUD_BUTTON_PRESSED;
-        ui->play_pause.icon_index = ICON_IDX_PLAY;
-    } else {
-        ui->play_pause.color = COLOR_HUD_BUTTON_INITIAL;
-        ui->play_pause.icon_index = ICON_IDX_PAUSE;
-    }
+    mouse_is_on_button |= update_button_with_mouse(&(ui->play_pause), BUTTON_PLAY_PAUSE, mouse, ui);
 
     // Update toggle arrows button
     ui->toggle_arrows.box.x = HUD_BUTTON_MARGIN;
     ui->toggle_arrows.box.y = (float)GetScreenHeight()/2.0f
                               - HUD_BUTTON_MARGIN/2.0f - HUD_PRIMARY_BUTTON_SIZE;
-    if (CheckCollisionPointRec(mouse, ui->toggle_arrows.box)) { // hovering
-        ui->toggle_arrows.color = COLOR_HUD_BUTTON_HOVERED;
-        if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {  // clicked
-            ui->arrows_on = !ui->arrows_on;
-        }
-        ui->toggle_arrows.icon_index = ui->arrows_on ? ICON_IDX_ARROWS_ON : ICON_IDX_ARROWS_OFF;
-        return;
-    }
-    if (ui->arrows_on) {
-        ui->toggle_arrows.color = COLOR_HUD_BUTTON_PRESSED;
-        ui->toggle_arrows.icon_index = ICON_IDX_ARROWS_ON;
-    } else {
-        ui->toggle_arrows.color = COLOR_HUD_BUTTON_INITIAL;
-        ui->toggle_arrows.icon_index = ICON_IDX_ARROWS_OFF;
-    }
+    mouse_is_on_button |= update_button_with_mouse(&(ui->toggle_arrows), BUTTON_TOGGLE_ARROWS, mouse, ui);
 
     // Update toggle trails button
     ui->toggle_trails.box.x = HUD_BUTTON_MARGIN;
     ui->toggle_trails.box.y = (float)GetScreenHeight()/2.0f + HUD_BUTTON_MARGIN/2.0f;
-    if (CheckCollisionPointRec(mouse, ui->toggle_trails.box)) { // hovering
-        ui->toggle_trails.color = COLOR_HUD_BUTTON_HOVERED;
-        if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {  // clicked
-            ui->trails_on = !ui->trails_on;
-        }
-        ui->toggle_trails.icon_index = ui->trails_on ? ICON_IDX_TRAILS_ON : ICON_IDX_TRAILS_OFF;
+    mouse_is_on_button |= update_button_with_mouse(&(ui->toggle_trails), BUTTON_TOGGLE_TRAILS, mouse, ui);
+
+    if (mouse_is_on_button) {
         return;
     }
-    if (ui->trails_on) {
-        ui->toggle_trails.color = COLOR_HUD_BUTTON_PRESSED;
-        ui->toggle_trails.icon_index = ICON_IDX_TRAILS_ON;
-    } else {
-        ui->toggle_trails.color = COLOR_HUD_BUTTON_INITIAL;
-        ui->toggle_trails.icon_index = ICON_IDX_TRAILS_OFF;
-    }
-
     // Mouse is not on any button
     update_input_box(&(ui->body_input), GetScreenToWorld2D(mouse, *camera), ui);
 

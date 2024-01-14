@@ -138,6 +138,10 @@ void draw_arrows(Bodies bodies);
 // Draws the trail of the bodies, up to a maximum of points (MAX_TRAIL).
 void draw_trails(Bodies bodies, UI ui);
 
+// Updates the button and returns a bool that indicates whether the mouse
+// is on that button.
+bool update_button_with_mouse(Button *button, Button_ID id, Vector2 mouse, UI *ui);
+
 // Updates the UI: translate camera on mouse right, zoom camera on mouse wheel,
 // update button colors according to their state and update input box.
 void update_ui(UI *ui, Camera2D *camera, Bodies *bodies);
