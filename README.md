@@ -23,7 +23,9 @@ $ make
 
 - `$ ./nbody` - Make an empty space and fill it with bodies by clicking the screen.
 
-- `$ ./nbody -n <number_of_bodies>` - Pre-fill the space with bodies by writing the data about them in stdin: mass, position (x), position (y), velocity (x), velocity (y).
+- `$ ./nbody -n <number_of_bodies>` - Pre-fill the space with bodies by writing the data about them in stdin: mass, density, position (x), position (y), velocity (x), velocity (y).
+
+Note: Mass and density must be greater than zero. The radius of each body is calculated as the cube root of its volume (mass/density), to emulate the square-cube law. 
 
 ### Sources
 

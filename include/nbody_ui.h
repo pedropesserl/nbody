@@ -22,11 +22,11 @@
 #define HUD_BUTTON_MARGIN 20.0f
 
 #define HUD_INPUT_BOX_WIDTH 266.0f
-#define HUD_INPUT_BOX_HEIGHT 135.0f
+#define HUD_INPUT_BOX_HEIGHT 160.0f
 #define INPUT_FIELD_MARGIN 5.0f
 #define MAX_LABEL_CHARACTERS 15
 #define MAX_INPUT_CHARACTERS 10
-#define MAX_FIELDS 3
+#define MAX_FIELDS 4
 
 typedef enum Icon_Index {
     ICON_IDX_PAUSE = 0,

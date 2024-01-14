@@ -11,7 +11,7 @@
     } while (0)
 
 #define MEM_ERR do {                                                                    \
-        fprintf(stderr, "Mem alloc error: %s:%d (%s)\n", __FILE__, __LINE__, __func__); \
+        fprintf(stderr, "%s:%d (%s): Mem alloc error\n", __FILE__, __LINE__, __func__); \
         exit(1);                                                                        \
     } while (0)
 
@@ -28,6 +28,7 @@ typedef struct Trail {
 typedef struct Body {
     float mass;
     float radius;
+    float density;
     Vector2 position;
     Vector2 velocity;
     Vector2 acceleration;
@@ -43,11 +44,11 @@ typedef struct Bodies {
 // Creates an empty array of bodies.
 Bodies create_bodies_array();
 
+// The radius of each body is calculated as the cube root of mass/density
+// (square cube law).
 Bodies create_bodies(int n_bodies, int screen_width, int screen_height);
 
 // Inserts a new body into the array of bodies.
-// The radius of each body is calculated as the cube root of its mass
-// (square cube law, assuming all densities are the same).
 void insert_body(Bodies *bodies, Body body);
 
 // Deallocates the memory for the bodies and returns NULL.

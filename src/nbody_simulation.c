@@ -33,11 +33,12 @@ Bodies create_bodies(int n_bodies, int screen_width, int screen_height) {
 
     for (int i = 0; i < n_bodies; i++) {
         scanf("%f", &(curr_body.mass));
+        scanf("%f", &(curr_body.density));
         scanf("%f", &i_pos_x);
         scanf("%f", &i_pos_y);
         scanf("%f", &(curr_body.velocity.x));
         scanf("%f", &(curr_body.velocity.y));
-        curr_body.radius = cbrtf(curr_body.mass);
+        curr_body.radius = cbrtf(curr_body.mass / curr_body.density);
         // Make (0,0) the center of the screen
         curr_body.position = (Vector2){screen_width/2 + i_pos_x,
                                        screen_height/2 + i_pos_y};

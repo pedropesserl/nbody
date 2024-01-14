@@ -124,11 +124,14 @@ Input_Box new_input_box(Vector2 position) {
         .fields[0] = new_string_input("Mass:", 5,
             (Vector2){ field_boxes_positions[0].x, field_boxes_positions[0].y },
             (Vector2){ field_box_width, field_box_height }),
-        .fields[1] = new_string_input("Velocity (x):", 12,
+        .fields[1] = new_string_input("Density:", 8,
             (Vector2){ field_boxes_positions[1].x, field_boxes_positions[1].y },
             (Vector2){ field_box_width, field_box_height }),
-        .fields[2] = new_string_input("Velocity (y):", 12,
+        .fields[2] = new_string_input("Velocity (x):", 12,
             (Vector2){ field_boxes_positions[2].x, field_boxes_positions[2].y },
+            (Vector2){ field_box_width, field_box_height }),
+        .fields[3] = new_string_input("Velocity (y):", 12,
+            (Vector2){ field_boxes_positions[3].x, field_boxes_positions[3].y },
             (Vector2){ field_box_width, field_box_height }),
         .confirm = new_button(BUTTON_CONFIRM, BUTTON_SECONDARY,
             (Vector2){
@@ -365,13 +368,19 @@ static void update_input_box(Input_Box *ib, Vector2 mouse_in_world, UI *ui) {
     }
 }
 
-static Body create_body_with_input_box(Input_Box ib, Vector2 position) {
+static Body *create_body_with_input_box(Input_Box ib, Vector2 position) {
     float mass = ib.fields[0].input_value;
-    float velocity_x = ib.fields[1].input_value;
-    float velocity_y = ib.fields[2].input_value;
-    Body new_body = {
+    float density = ib.fields[1].input_value;
+    if (mass <= 0.0f || density <= 0.0f) { // mass and density must be greater than 0
+        return NULL;
+    }
+    float velocity_x = ib.fields[2].input_value;
+    float velocity_y = ib.fields[3].input_value;
+    Body *new_body = (Body*)malloc(sizeof(Body));
+    *new_body = (Body){
         .mass = mass,
-        .radius = 0.0f, // radius is calculated based on mass
+        .density = density,
+        .radius = 0.0f, // radius is calculated based on mass and density
         .position = position,
         .velocity = (Vector2){velocity_x, velocity_y},
         .acceleration = Vector2Zero(),
@@ -379,11 +388,11 @@ static Body create_body_with_input_box(Input_Box ib, Vector2 position) {
         .trail.count = 1,
         .trail.iterator = 0,
     };
-    if (!new_body.trail.points) {
+    if (!new_body->trail.points) {
         MEM_ERR;
     }
-    new_body.trail.points[0] = new_body.position;
-    new_body.radius = cbrtf(new_body.mass);
+    new_body->trail.points[0] = new_body->position;
+    new_body->radius = cbrtf(new_body->mass / new_body->density);
     return new_body;
 }
 
@@ -478,21 +487,20 @@ void update_ui(UI *ui, Camera2D *camera, Bodies *bodies) {
     }
 
     bool body_will_collide = false;
-    Body new_body = create_body_with_input_box(ui->body_input, ui->position_to_create_body);
+    Body *new_body = create_body_with_input_box(ui->body_input, ui->position_to_create_body);
     ui->created_body_with_input = true;
-    if (new_body.mass <= 0.0f) {
-        free(new_body.trail.points);
+    if (new_body == NULL) { // bad input of fields in input box
         return;
     }
     for (size_t i = 0; i < bodies->count; i++) {
-        if (CheckCollisionCircles(ui->position_to_create_body, new_body.radius,
+        if (CheckCollisionCircles(ui->position_to_create_body, new_body->radius,
                                   bodies->data[i].position, bodies->data[i].radius)) {
             body_will_collide = true;
             break;
         }
     }
     if (!body_will_collide) {
-        insert_body(bodies, new_body);
+        insert_body(bodies, *new_body);
     }
 }
 
