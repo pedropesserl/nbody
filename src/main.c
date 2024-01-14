@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
                 if (ui.arrows_on) {
                     draw_arrows(bodies);
                 }
-                if (ui.body_input.active) {
+                if (ui.body_input.is_on) {
                     draw_input_box(ui.body_input, ui);
                 }
             }

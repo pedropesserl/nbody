@@ -59,7 +59,6 @@ typedef struct Button {
     Icon_Index icon_index;
     float roundness;
     bool is_pressed;
-    bool is_hovered;
     Color color;
     bool has_border;
     Color border_color;
@@ -89,7 +88,8 @@ typedef struct Input_Box {
     Str_Input fields[MAX_FIELDS];
     Button confirm;
     Button cancel;
-    bool active;
+    bool is_on;
+    bool is_invoked;
 } Input_Box;
 
 typedef struct UI {

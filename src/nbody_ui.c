@@ -46,7 +46,6 @@ Button new_button(Button_ID id, Button_Type type, Vector2 position) {
         .icon_index = 0,
         .roundness = 0.3f,
         .is_pressed = false,
-        .is_hovered = false,
         .color = COLOR_HUD_BUTTON_INITIAL,
         .has_border = true,
         .border_color = COLOR_HUD_BUTTON_BORDER,
@@ -141,7 +140,8 @@ Input_Box new_input_box(Vector2 position) {
                 .x = position.x + HUD_INPUT_BOX_WIDTH - HUD_SECONDARY_BUTTON_SIZE - INPUT_FIELD_MARGIN,
                 .y = position.y + INPUT_FIELD_MARGIN,
             }),
-        .active = true,
+        .is_on = true,
+        .is_invoked = false,
     };
 
     return ib;
@@ -192,7 +192,7 @@ UI setup_ui(void) {
         .created_body_with_input = false,
         .icons = {{0}}, // initialized after we load and resize the images
     };
-    ui.body_input.active = false;
+    ui.body_input.is_on = false;
 
     Image icons_img[ICON_COUNT] = LOAD_ICONS;
     Vector2 play_pause_size = (Vector2) { HUD_SECONDARY_BUTTON_SIZE,
@@ -285,8 +285,11 @@ static void zoom_camera_on_mouse_wheel(Camera2D *camera, float wheel) {
 }
 
 static void update_input_box(Input_Box *ib, Vector2 mouse_in_world, UI *ui) {
-    if (!ib->active) {
+    if (!ib->is_on) {
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+            ib->is_invoked = true;
+        }
+        if (ib->is_invoked && IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
             *ib = create_input_box_with_mouse(mouse_in_world);
             ui->position_to_create_body = mouse_in_world;
         }
@@ -296,7 +299,7 @@ static void update_input_box(Input_Box *ib, Vector2 mouse_in_world, UI *ui) {
     if (CheckCollisionPointRec(mouse_in_world, ib->cancel.box)) { // hovering
         ib->cancel.color = COLOR_HUD_BUTTON_HOVERED;
         if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) { // clicked
-            ib->active = false;
+            ib->is_on = false;
         }
         return;
     }
@@ -306,7 +309,7 @@ static void update_input_box(Input_Box *ib, Vector2 mouse_in_world, UI *ui) {
         ib->confirm.color = COLOR_HUD_BUTTON_HOVERED;
         if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) { // clicked
             ui->created_body_with_input = false;
-            ib->active = false;
+            ib->is_on = false;
             // parse input
             for (int i = 0; i < MAX_FIELDS; i++) {
                 ib->fields[i].input_value = strtof(ib->fields[i].input, NULL);
@@ -411,11 +414,15 @@ bool update_button_with_mouse(Button *button, Button_ID id, Vector2 mouse, UI *u
     if (CheckCollisionPointRec(mouse, button->box)) { // hovering
         mouse_is_on_button = true;
         button->color = COLOR_HUD_BUTTON_HOVERED;
-        if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {  // clicked
+        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+            button->is_pressed = true;
+        }
+        if (button->is_pressed && IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
             *associated_value = !(*associated_value);
         }
     } else {
         button->color = *associated_value ? COLOR_HUD_BUTTON_PRESSED : COLOR_HUD_BUTTON_INITIAL;
+        button->is_pressed = false;
     }
     button->icon_index = *associated_value ? icon_active : icon_inactive;
     return mouse_is_on_button;
@@ -460,6 +467,7 @@ void update_ui(UI *ui, Camera2D *camera, Bodies *bodies) {
     mouse_is_on_button |= update_button_with_mouse(&(ui->toggle_trails), BUTTON_TOGGLE_TRAILS, mouse, ui);
 
     if (mouse_is_on_button) {
+        ui->body_input.is_invoked = false;
         return;
     }
     // Mouse is not on any button
