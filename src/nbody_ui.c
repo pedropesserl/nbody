@@ -291,6 +291,10 @@ static void update_input_box(Input_Box *ib, Vector2 mouse_in_world, UI *ui) {
         return;
     }
 
+    if (IsKeyPressed(KEY_ESCAPE)) {
+        ib->is_on = false;
+        return;
+    }
     if (CheckCollisionPointRec(mouse_in_world, ib->cancel.box)) { // hovering
         ib->cancel.color = COLOR_HUD_BUTTON_HOVERED;
         if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) { // clicked
@@ -300,6 +304,14 @@ static void update_input_box(Input_Box *ib, Vector2 mouse_in_world, UI *ui) {
     }
     ib->cancel.color = COLOR_HUD_BUTTON_INITIAL;
 
+    if (IsKeyPressed(KEY_ENTER)) {
+        ui->created_body_with_input = false;
+        ib->is_on = false;
+        for (int i = 0; i < MAX_FIELDS; i++) {
+            ib->fields[i].input_value = strtof(ib->fields[i].input, NULL);
+        }
+        return;
+    }
     if (CheckCollisionPointRec(mouse_in_world, ib->confirm.box)) { // hovering
         ib->confirm.color = COLOR_HUD_BUTTON_HOVERED;
         if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) { // clicked
@@ -314,6 +326,21 @@ static void update_input_box(Input_Box *ib, Vector2 mouse_in_world, UI *ui) {
     }
     ib->confirm.color = COLOR_HUD_BUTTON_INITIAL;
 
+    if (IsKeyPressed(KEY_TAB)) {
+        int selected = -1;
+        for (int i = 0; i < MAX_FIELDS; i++) {
+            if (ib->fields[i].is_selected) {
+                selected = i;
+                break;
+            }
+        }
+        if (selected == -1) { // no field was selected
+            ib->fields[0].is_selected = true;
+            return;
+        }
+        ib->fields[selected].is_selected = false;
+        ib->fields[(selected + 1) % MAX_FIELDS].is_selected = true;
+    }
     for (int i = 0; i < MAX_FIELDS; i++) {
         Str_Input *field = &(ib->fields[i]);
         if (CheckCollisionPointRec(mouse_in_world, field->input_box)) { // hovering

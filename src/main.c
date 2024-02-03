@@ -17,6 +17,7 @@ int main(int argc, char **argv) {
     InitWindow(1200, 900, "nbody");
     SetWindowState(FLAG_VSYNC_HINT);
     SetTargetFPS(60);
+    SetExitKey(KEY_NULL);
 
     Camera2D camera = {0};
     camera.zoom = 1.0f;
