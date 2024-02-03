@@ -4,7 +4,7 @@
 #include "raylib.h"
 #include "nbody_simulation.h"
 
-#define ICON_COUNT 8
+#define ICON_COUNT 10
 
 #define COLOR_BACKGROUND          BLACK
 #define COLOR_VELOCITY_ARROW      WHITE
@@ -37,6 +37,8 @@ typedef enum Icon_Index {
     ICON_IDX_TRAILS_ON = 5,
     ICON_IDX_CONFIRM = 6,
     ICON_IDX_CANCEL = 7,
+    ICON_IDX_FAST_FWD = 8,
+    ICON_IDX_REWIND = 9,
 } Icon_Index;
 
 typedef enum Button_ID {
@@ -45,6 +47,8 @@ typedef enum Button_ID {
     BUTTON_TOGGLE_TRAILS = 2,
     BUTTON_CONFIRM = 3,
     BUTTON_CANCEL = 4,
+    BUTTON_FAST_FWD = 5,
+    BUTTON_REWIND = 6,
 } Button_ID;
 
 typedef enum Button_Type {
@@ -96,11 +100,14 @@ typedef struct UI {
     bool is_paused;
     bool arrows_on;
     bool trails_on;
-    int fast_forward_factor;
+    int fast_fwd_factor;
+    bool rewind_on;
     Color body_colors[10];
     Button play_pause;
     Button toggle_arrows;
     Button toggle_trails;
+    Button fast_fwd;
+    Button rewind;
     Input_Box body_input;
     Vector2 position_to_create_body;
     bool created_body_with_input;
@@ -111,8 +118,8 @@ typedef struct UI {
 // sides scaled by scale.
 void resize_image_to_rectangle(Image *image, Vector2 rectangle_size, float scale);
 
-// Returns a new button with the indicated id an type, at the indicated position.
-Button new_button(Button_ID id, Button_Type type, Vector2 position);
+// Returns a new button with the indicated id and type, at position (0,0).
+Button new_button(Button_ID id, Button_Type type);
 
 // Returns a new string input with the indicated label of length lable_len,
 // at position pos and with size size.
@@ -138,9 +145,9 @@ void draw_arrows(Bodies bodies);
 // Draws the trail of the bodies, up to a maximum of points (MAX_TRAIL).
 void draw_trails(Bodies bodies, UI ui);
 
-// Updates the button and returns a bool that indicates whether the mouse
+// Updates a toggle button and returns a bool that indicates whether the mouse
 // is on that button.
-bool update_button_with_mouse(Button *button, Button_ID id, Vector2 mouse, UI *ui);
+bool update_toggle_button(Button *button, Button_ID id, Vector2 mouse, UI *ui);
 
 // Updates the UI: translate camera on mouse right, zoom camera on mouse wheel,
 // update button colors according to their state and update input box.

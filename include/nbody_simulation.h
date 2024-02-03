@@ -18,11 +18,14 @@
 #define MAX_TRAIL 1500
 #define COEFF_RESTITUTION 0.99f
 #define GRAVIT_CONSTANT 10.0f
+#define mod(a, b) (((a) % (b) + (b)) % (b))
 
 typedef struct Trail {
-    Vector2 *points;
-    int count;
-    int iterator;
+    Vector2 *positions;
+    Vector2 *velocities;    // velocities and accelerations are used
+    Vector2 *accelerations; // when rewinding the simulation
+    int begin;
+    int end;
 } Trail;
 
 typedef struct Body {
@@ -41,9 +44,6 @@ typedef struct Bodies {
     size_t capacity;
 } Bodies;
 
-// Creates an empty array of bodies.
-Bodies create_bodies_array();
-
 // The radius of each body is calculated as the cube root of mass/density
 // (square cube law).
 Bodies create_bodies(int n_bodies, int screen_width, int screen_height);
@@ -53,6 +53,15 @@ void insert_body(Bodies *bodies, Body body);
 
 // Deallocates the memory for the bodies and returns NULL.
 void destroy_bodies(Bodies *bodies);
+
+// Creates an empty trail.
+Trail new_trail();
+
+// Inserts a copy of the body into the trail in a circular array approach.
+void push_to_trail(Trail *trail, Body body);
+
+// Removes the copy of a body currently pointed at by the iterator from the trail.
+void pop_from_trail(Trail *trail);
 
 // Applies velocity to position and acceleration to velocity in each body.
 void update_bodies(Bodies *bodies);
@@ -70,5 +79,9 @@ void handle_2d_collision(Body *body1, Body *body2, float coeff_restitution);
 // collision_handler() on them.
 void apply_gravitational_forces(Bodies *bodies, float G,
                                 void collision_handler(Body*, Body*, float));
+
+// Plays the simulation in reverse using the points already calculated in the trail.
+// If the trail is empty, the simulation is paused.
+void rewind_simulation(Bodies *bodies);
 
 #endif // NBODY_SIMULATION_H_

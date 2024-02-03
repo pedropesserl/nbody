@@ -25,7 +25,10 @@ int main(int argc, char **argv) {
 
     while (!WindowShouldClose()) {
         if (!ui.is_paused) {
-            for (int i = 0; i < ui.fast_forward_factor; i++) {
+            if (ui.fast_fwd_factor == 0) { // rewind
+                rewind_simulation(&bodies);
+            }
+            for (int i = 0; i < ui.fast_fwd_factor; i++) {
                 update_bodies(&bodies);
                 apply_gravitational_forces(&bodies, GRAVIT_CONSTANT, handle_2d_collision);
             }
@@ -50,8 +53,6 @@ int main(int argc, char **argv) {
                 }
             }
             EndMode2D();
-            DrawFPS(10, 10);
-
             draw_ui(ui);
         }
         EndDrawing();

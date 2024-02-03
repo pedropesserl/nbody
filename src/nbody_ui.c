@@ -31,15 +31,17 @@ void resize_image_to_rectangle(Image *image, Vector2 rectangle_size, float scale
             LoadImage("./img/icon_trails_on.png"),  \
             LoadImage("./img/icon_confirm.png"),    \
             LoadImage("./img/icon_cancel.png"),     \
+            LoadImage("./img/icon_fast_fwd.png"),   \
+            LoadImage("./img/icon_rewind.png"),     \
         }
 
-Button new_button(Button_ID id, Button_Type type, Vector2 position) {
+Button new_button(Button_ID id, Button_Type type) {
     Button b = (Button){
         .id = id,
         .type = type,
         .box = (Rectangle){
-            .x = position.x,
-            .y = position.y,
+            .x = 0.0f,
+            .y = 0.0f,
             .width = 0,
             .height = 0,
         },
@@ -67,6 +69,8 @@ Button new_button(Button_ID id, Button_Type type, Vector2 position) {
         case BUTTON_TOGGLE_TRAILS: b.icon_index = ICON_IDX_TRAILS_OFF; break;
         case BUTTON_CONFIRM:       b.icon_index = ICON_IDX_CONFIRM;    break;
         case BUTTON_CANCEL:        b.icon_index = ICON_IDX_CANCEL;     break;
+        case BUTTON_FAST_FWD:      b.icon_index = ICON_IDX_FAST_FWD;   break;
+        case BUTTON_REWIND:        b.icon_index = ICON_IDX_REWIND;     break;
     }
     return b;
 }
@@ -133,23 +137,21 @@ Input_Box new_input_box(Vector2 position) {
         .fields[3] = new_string_input("Velocity (y):", 12,
             (Vector2){ field_boxes_positions[3].x, field_boxes_positions[3].y },
             (Vector2){ field_box_width, field_box_height }),
-        .confirm = new_button(BUTTON_CONFIRM, BUTTON_SECONDARY,
-            (Vector2){
-                .x = position.x + HUD_INPUT_BOX_WIDTH - 2*HUD_SECONDARY_BUTTON_SIZE - 2*INPUT_FIELD_MARGIN,
-                .y = position.y + INPUT_FIELD_MARGIN,
-            }),
-        .cancel = new_button(BUTTON_CANCEL, BUTTON_SECONDARY,
-            (Vector2){
-                .x = position.x + HUD_INPUT_BOX_WIDTH - HUD_SECONDARY_BUTTON_SIZE - INPUT_FIELD_MARGIN,
-                .y = position.y + INPUT_FIELD_MARGIN,
-            }),
+        .confirm = new_button(BUTTON_CONFIRM, BUTTON_SECONDARY),
+        .cancel = new_button(BUTTON_CANCEL, BUTTON_SECONDARY),
         .is_on = true,
         .is_invoked = false,
     };
 
+    ib.confirm.box.x = position.x + HUD_INPUT_BOX_WIDTH - 2*HUD_SECONDARY_BUTTON_SIZE - 2*INPUT_FIELD_MARGIN;
+    ib.confirm.box.y = position.y + INPUT_FIELD_MARGIN;
+    ib.cancel.box.x = position.x + HUD_INPUT_BOX_WIDTH - HUD_SECONDARY_BUTTON_SIZE - INPUT_FIELD_MARGIN;
+    ib.cancel.box.y = position.y + INPUT_FIELD_MARGIN;
+
     return ib;
 }
 
+// this function makes sure the input box is visible in the screen wherever it's called
 static Input_Box create_input_box_with_mouse(Vector2 mouse) {
     if (mouse.x < GetScreenWidth()/2) {
         if (mouse.y < GetScreenHeight()/2) {
@@ -171,25 +173,16 @@ UI setup_ui(void) {
         .is_paused = false,
         .arrows_on = false,
         .trails_on = false,
-        .fast_forward_factor = 1,
+        .fast_fwd_factor = 1,
+        .rewind_on = false,
         .body_colors = {
             RED, BLUE, GREEN, YELLOW, PURPLE, ORANGE, PINK, GOLD, LIME, DARKBLUE
         },
-        .play_pause = new_button(BUTTON_PLAY_PAUSE, BUTTON_SECONDARY,
-            (Vector2){
-                .x = (float)GetScreenWidth()/2.0f - HUD_SECONDARY_BUTTON_SIZE,
-                .y = HUD_BUTTON_MARGIN,
-            }),
-        .toggle_arrows = new_button(BUTTON_TOGGLE_ARROWS, BUTTON_PRIMARY,
-            (Vector2){
-                .x = HUD_BUTTON_MARGIN,
-                .y = (float)GetScreenHeight()/2.0f,
-            }),
-        .toggle_trails = new_button(BUTTON_TOGGLE_TRAILS, BUTTON_PRIMARY,
-            (Vector2){
-                .x = HUD_BUTTON_MARGIN,
-                .y = (float)GetScreenHeight()/2.0f + HUD_BUTTON_MARGIN/2.0f,
-            }),
+        .play_pause = new_button(BUTTON_PLAY_PAUSE, BUTTON_SECONDARY),
+        .toggle_arrows = new_button(BUTTON_TOGGLE_ARROWS, BUTTON_PRIMARY),
+        .toggle_trails = new_button(BUTTON_TOGGLE_TRAILS, BUTTON_PRIMARY),
+        .fast_fwd = new_button(BUTTON_FAST_FWD, BUTTON_SECONDARY),
+        .rewind = new_button(BUTTON_REWIND, BUTTON_SECONDARY),
         .body_input = new_input_box(Vector2Zero()),
         .position_to_create_body = Vector2Zero(),
         .created_body_with_input = false,
@@ -202,6 +195,8 @@ UI setup_ui(void) {
                                           HUD_SECONDARY_BUTTON_SIZE };
     Vector2 confirm_size = play_pause_size;
     Vector2 cancel_size = play_pause_size;
+    Vector2 fast_fwd_size = play_pause_size;
+    Vector2 rewind_size = play_pause_size;
     Vector2 toggle_arrows_size = (Vector2){ HUD_PRIMARY_BUTTON_SIZE,
                                             HUD_PRIMARY_BUTTON_SIZE };
     Vector2 toggle_trails_size = toggle_arrows_size;
@@ -213,6 +208,8 @@ UI setup_ui(void) {
     resize_image_to_rectangle(&(icons_img[ICON_IDX_TRAILS_ON]),  toggle_trails_size, 0.8f);
     resize_image_to_rectangle(&(icons_img[ICON_IDX_CONFIRM]),    confirm_size, 0.85f);
     resize_image_to_rectangle(&(icons_img[ICON_IDX_CANCEL]),     cancel_size, 0.7f);
+    resize_image_to_rectangle(&(icons_img[ICON_IDX_FAST_FWD]),   fast_fwd_size, 0.75f);
+    resize_image_to_rectangle(&(icons_img[ICON_IDX_REWIND]),     rewind_size, 0.75f);
     for (int i = 0; i < ICON_COUNT; i++) {
         ui.icons[i] = LoadTextureFromImage(icons_img[i]);
         UnloadImage(icons_img[i]);
@@ -236,15 +233,14 @@ void draw_bodies(Bodies bodies, UI ui) {
 
 static void draw_vector_arrow(Vector2 vector, Vector2 position, Color color) {
         Vector2 horizontal = (Vector2){1.0f, 0.0f};
-
         float cos_rotation = Vector2DotProduct(horizontal, vector) / Vector2Length(vector);
         float rotation = -acosf(cos_rotation) * RAD2DEG;
         if (vector.y > 0) {
             rotation = 360.0f - rotation;
         }
-        Vector2 arrow_end = Vector2Add(position, vector);
-        DrawLineEx(position, arrow_end, 2.0f, color);
-        DrawPoly(arrow_end, 3, 4.5f, rotation, color);
+        Vector2 arrow_head = Vector2Add(position, vector);
+        DrawLineEx(position, arrow_head, 2.0f, color);
+        DrawPoly(arrow_head, 3, 4.5f, rotation, color);
 }
 
 void draw_arrows(Bodies bodies) {
@@ -256,16 +252,12 @@ void draw_arrows(Bodies bodies) {
     }
 }
 
-#define mod(a, b) (((a) % (b) + (b)) % (b))
-
 void draw_trails(Bodies bodies, UI ui) {
     for (size_t i = 0; i < bodies.count; i++) {
-        int trail_it = bodies.data[i].trail.iterator;
-        int count = bodies.data[i].trail.count;
-
-        for (int j = 1; j < count; j++) {
-            DrawLineV(bodies.data[i].trail.points[mod(trail_it + j, count)],
-                      bodies.data[i].trail.points[mod(trail_it + 1 + j, count)],
+        int begin = bodies.data[i].trail.begin, end = bodies.data[i].trail.end;
+        for (int j = begin; j != end; j = (j + 1) % MAX_TRAIL) {
+            DrawLineV(bodies.data[i].trail.positions[j],
+                      bodies.data[i].trail.positions[(j + 1) % MAX_TRAIL],
                       ui.body_colors[i % 10]);
         }
     }
@@ -384,36 +376,36 @@ static Body *create_body_with_input_box(Input_Box ib, Vector2 position) {
         .position = position,
         .velocity = (Vector2){velocity_x, velocity_y},
         .acceleration = Vector2Zero(),
-        .trail.points = (Vector2*)malloc(MAX_TRAIL * sizeof(Vector2)),
-        .trail.count = 1,
-        .trail.iterator = 0,
+        .trail = {0},
     };
-    if (!new_body->trail.points) {
-        MEM_ERR;
-    }
-    new_body->trail.points[0] = new_body->position;
+    new_body->trail = new_trail();
+    new_body->trail.positions[0] = new_body->position;
+    new_body->trail.velocities[0] = new_body->velocity;
+    new_body->trail.accelerations[0] = new_body->acceleration;
+    new_body->trail.begin = 0;
+    new_body->trail.end = 0;
     new_body->radius = cbrtf(new_body->mass / new_body->density);
     return new_body;
 }
 
-bool update_button_with_mouse(Button *button, Button_ID id, Vector2 mouse, UI *ui) {
+bool update_toggle_button(Button *button, Button_ID id, Vector2 mouse, UI *ui) {
     bool mouse_is_on_button = false;
-    bool *associated_value;
+    bool *toggle_value;
     Icon_Index icon_active;
     Icon_Index icon_inactive;
     switch (id) {
         case BUTTON_PLAY_PAUSE:
-            associated_value = &(ui->is_paused);
+            toggle_value = &(ui->is_paused);
             icon_active = ICON_IDX_PLAY;
             icon_inactive = ICON_IDX_PAUSE;
             break;
         case BUTTON_TOGGLE_ARROWS:
-            associated_value = &(ui->arrows_on);
+            toggle_value = &(ui->arrows_on);
             icon_active = ICON_IDX_ARROWS_ON;
             icon_inactive = ICON_IDX_ARROWS_OFF;
             break;
         case BUTTON_TOGGLE_TRAILS:
-            associated_value = &(ui->trails_on);
+            toggle_value = &(ui->trails_on);
             icon_active = ICON_IDX_TRAILS_ON;
             icon_inactive = ICON_IDX_TRAILS_OFF;
             break;
@@ -427,13 +419,13 @@ bool update_button_with_mouse(Button *button, Button_ID id, Vector2 mouse, UI *u
             button->is_pressed = true;
         }
         if (button->is_pressed && IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
-            *associated_value = !(*associated_value);
+            *toggle_value = !(*toggle_value);
         }
     } else {
-        button->color = *associated_value ? COLOR_HUD_BUTTON_PRESSED : COLOR_HUD_BUTTON_INITIAL;
+        button->color = *toggle_value ? COLOR_HUD_BUTTON_PRESSED : COLOR_HUD_BUTTON_INITIAL;
         button->is_pressed = false;
     }
-    button->icon_index = *associated_value ? icon_active : icon_inactive;
+    button->icon_index = *toggle_value ? icon_active : icon_inactive;
     return mouse_is_on_button;
 }
 
@@ -462,18 +454,56 @@ void update_ui(UI *ui, Camera2D *camera, Bodies *bodies) {
     // Update play/pause button
     ui->play_pause.box.x = (float)GetScreenWidth()/2.0f - HUD_SECONDARY_BUTTON_SIZE/2.0f;
     ui->play_pause.box.y = HUD_BUTTON_MARGIN;
-    mouse_is_on_button |= update_button_with_mouse(&(ui->play_pause), BUTTON_PLAY_PAUSE, mouse, ui);
+    mouse_is_on_button |= update_toggle_button(&(ui->play_pause), BUTTON_PLAY_PAUSE, mouse, ui);
 
     // Update toggle arrows button
     ui->toggle_arrows.box.x = HUD_BUTTON_MARGIN;
     ui->toggle_arrows.box.y = (float)GetScreenHeight()/2.0f
                               - HUD_BUTTON_MARGIN/2.0f - HUD_PRIMARY_BUTTON_SIZE;
-    mouse_is_on_button |= update_button_with_mouse(&(ui->toggle_arrows), BUTTON_TOGGLE_ARROWS, mouse, ui);
+    mouse_is_on_button |= update_toggle_button(&(ui->toggle_arrows), BUTTON_TOGGLE_ARROWS, mouse, ui);
 
     // Update toggle trails button
     ui->toggle_trails.box.x = HUD_BUTTON_MARGIN;
     ui->toggle_trails.box.y = (float)GetScreenHeight()/2.0f + HUD_BUTTON_MARGIN/2.0f;
-    mouse_is_on_button |= update_button_with_mouse(&(ui->toggle_trails), BUTTON_TOGGLE_TRAILS, mouse, ui);
+    mouse_is_on_button |= update_toggle_button(&(ui->toggle_trails), BUTTON_TOGGLE_TRAILS, mouse, ui);
+
+    // Update fast forward button
+    ui->fast_fwd.box.x = (float)GetScreenWidth()/2.0f + HUD_SECONDARY_BUTTON_SIZE/2.0f + HUD_BUTTON_MARGIN;
+    ui->fast_fwd.box.y = HUD_BUTTON_MARGIN;
+    if (CheckCollisionPointRec(mouse, ui->fast_fwd.box)) { // hovering
+        mouse_is_on_button = true;
+        ui->fast_fwd.color = COLOR_HUD_BUTTON_HOVERED;
+        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+            ui->fast_fwd.is_pressed = true;
+        }
+        if (ui->fast_fwd.is_pressed && IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
+            if (ui->fast_fwd_factor < 5) {
+                ui->fast_fwd_factor++;
+            }
+        }
+    } else {
+        ui->fast_fwd.color = COLOR_HUD_BUTTON_INITIAL;
+        ui->fast_fwd.is_pressed = false;
+    }
+
+    // Update rewind button
+    ui->rewind.box.x = (float)GetScreenWidth()/2.0f - 1.5*HUD_SECONDARY_BUTTON_SIZE - HUD_BUTTON_MARGIN;
+    ui->rewind.box.y = HUD_BUTTON_MARGIN;
+    if (CheckCollisionPointRec(mouse, ui->rewind.box)) { // hovering
+        mouse_is_on_button = true;
+        ui->rewind.color = COLOR_HUD_BUTTON_HOVERED;
+        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+            ui->rewind.is_pressed = true;
+        }
+        if (ui->rewind.is_pressed && IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
+            if (ui->fast_fwd_factor > 0) {
+                ui->fast_fwd_factor--;
+            }
+        }
+    } else {
+        ui->rewind.color = COLOR_HUD_BUTTON_INITIAL;
+        ui->rewind.is_pressed = false;
+    }
 
     if (mouse_is_on_button) {
         ui->body_input.is_invoked = false;
@@ -550,7 +580,17 @@ void draw_input_box(Input_Box ib, UI ui) {
 }
 
 void draw_ui(UI ui) {
+    DrawFPS(10, 10);
     draw_button(ui.play_pause, ui);
     draw_button(ui.toggle_arrows, ui);
     draw_button(ui.toggle_trails, ui);
+    draw_button(ui.fast_fwd, ui);
+    if (ui.fast_fwd_factor == 0) {
+        DrawText("REWIND", GetScreenWidth() - MeasureText("REWIND", 20) - 10, 10, 20, WHITE);
+    } else if (ui.fast_fwd_factor > 1) {
+        char ff[3] = {0};
+        snprintf(ff, 3, "x%d", ui.fast_fwd_factor);
+        DrawText(ff, GetScreenWidth() - MeasureText(ff, 20) - 10, 10, 20, WHITE);
+    }
+    draw_button(ui.rewind, ui);
 }
