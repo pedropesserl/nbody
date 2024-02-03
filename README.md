@@ -27,6 +27,14 @@ $ make
 
 Note: Mass and density must be greater than zero. The radius of each body is calculated as the cube root of its volume (mass/density), to emulate the square-cube law. 
 
+### Keyboard shortcuts
+
+- `␣` Play/pause simulation
+- `a` Toggle arrows
+- `t` Toggle trails
+- `←` Rewind
+- `→` Fast forward
+
 ### Sources
 
 - https://www.raylib.com/examples.html
