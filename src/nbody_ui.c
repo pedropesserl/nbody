@@ -447,6 +447,12 @@ void update_ui(UI *ui, Camera2D *camera, Bodies *bodies) {
     if (IsKeyPressed(KEY_T)) {
         ui->trails_on = !ui->trails_on;
     }
+    if (IsKeyPressed(KEY_RIGHT)) {
+        ui->fast_fwd_factor += ui->fast_fwd_factor < 5;
+    }
+    if (IsKeyPressed(KEY_LEFT)) {
+        ui->fast_fwd_factor -= ui->fast_fwd_factor > 0;
+    }
 
     Vector2 mouse = GetMousePosition();
     bool mouse_is_on_button = false;
@@ -477,9 +483,7 @@ void update_ui(UI *ui, Camera2D *camera, Bodies *bodies) {
             ui->fast_fwd.is_pressed = true;
         }
         if (ui->fast_fwd.is_pressed && IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
-            if (ui->fast_fwd_factor < 5) {
-                ui->fast_fwd_factor++;
-            }
+            ui->fast_fwd_factor += ui->fast_fwd_factor < 5;
         }
     } else {
         ui->fast_fwd.color = COLOR_HUD_BUTTON_INITIAL;
@@ -496,9 +500,7 @@ void update_ui(UI *ui, Camera2D *camera, Bodies *bodies) {
             ui->rewind.is_pressed = true;
         }
         if (ui->rewind.is_pressed && IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
-            if (ui->fast_fwd_factor > 0) {
-                ui->fast_fwd_factor--;
-            }
+            ui->fast_fwd_factor -= ui->fast_fwd_factor > 0;
         }
     } else {
         ui->rewind.color = COLOR_HUD_BUTTON_INITIAL;
