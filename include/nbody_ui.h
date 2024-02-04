@@ -25,7 +25,7 @@
 #define HUD_INPUT_BOX_HEIGHT 160.0f
 #define INPUT_FIELD_MARGIN 5.0f
 #define MAX_LABEL_CHARACTERS 15
-#define MAX_INPUT_CHARACTERS 12
+#define MAX_INPUT_CHARACTERS 10
 #define MAX_FIELDS 4
 
 typedef enum Icon_Index {

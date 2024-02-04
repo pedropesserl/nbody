@@ -187,7 +187,7 @@ UI setup_ui(void) {
         .position_to_create_body = Vector2Zero(),
         .created_body_with_input = false,
         .icons = {{0}}, // initialized after we load and resize the images
-        .font = LoadFontEx("./resources/fonts/monocode-semibold.ttf", 28, NULL, 0),
+        .font = LoadFontEx("./resources/fonts/EurostileBold.ttf", 28, NULL, 0),
     };
     ui.body_input.is_on = false;
 
@@ -223,6 +223,7 @@ void unload_ui(UI *ui) {
     for (int i = 0; i < ICON_COUNT; i++) {
         UnloadTexture(ui->icons[i]);
     }
+    UnloadFont(ui->font);
 }
 
 void draw_bodies(Bodies bodies, UI ui) {
@@ -593,28 +594,28 @@ void draw_input_box(Input_Box ib, UI ui) {
     draw_button(ib.confirm, ui);
     draw_button(ib.cancel, ui);
 
-    float font_size = ib.fields[0].input_box.height * 0.75;
+    float font_size = ib.fields[0].input_box.height * 0.8;
     
     for (int i = 0; i < MAX_FIELDS; i++) {
-        Vector2 label_size = MeasureTextEx(ui.font, ib.fields[i].label, font_size, 0.5);
+        Vector2 label_size = MeasureTextEx(ui.font, ib.fields[i].label, font_size, 1);
         // TODO: center label correctly instead of just adding 3
         Vector2 label_position = (Vector2){ ib.box.x + INPUT_FIELD_MARGIN,
             ib.fields[i].input_box.y + ib.fields[i].input_box.height/2.0f - label_size.y/2.0f };
-        DrawTextEx(ui.font, ib.fields[i].label, label_position, font_size, 0.5, WHITE);
+        DrawTextEx(ui.font, ib.fields[i].label, label_position, font_size, 1, WHITE);
         DrawRectangleRounded(ib.fields[i].input_box, ib.fields[i].roundness, segments,
                              ib.fields[i].color);
         if (ib.fields[i].is_selected) {
             DrawRectangleRoundedLines(ib.fields[i].input_box, ib.fields[i].roundness,
                                       segments, 2.0f, ib.border_color);
         }
-        Vector2 input_position = (Vector2){ ib.fields[i].input_box.x + 3,
+        Vector2 input_position = (Vector2){ ib.fields[i].input_box.x + 2,
             ib.fields[i].input_box.y + ib.fields[i].input_box.height/2.0f - label_size.y/2.0f };
-        DrawTextEx(ui.font, ib.fields[i].input, input_position, font_size, 0.5, WHITE);
+        DrawTextEx(ui.font, ib.fields[i].input, input_position, font_size, 0, WHITE);
     }
 }
 
 void draw_ui(UI ui) {
-    DrawFPS(10, 10);
+    /* DrawFPS(10, 10); */
     draw_button(ui.play_pause, ui);
     draw_button(ui.toggle_arrows, ui);
     draw_button(ui.toggle_trails, ui);
@@ -622,7 +623,6 @@ void draw_ui(UI ui) {
     if (ui.fast_fwd_factor == 0) {
         Vector2 text_size = MeasureTextEx(ui.font, "REWIND", 28, 0.5);
         DrawTextEx(ui.font, "REWIND", (Vector2){GetScreenWidth() - text_size.x - 10, 10}, 28, 0.5, WHITE);
-        /* DrawText("REWIND", GetScreenWidth() - MeasureText("REWIND", 20) - 10, 10, 20, WHITE); */
     } else if (ui.fast_fwd_factor > 1) {
         char ff[3] = {0};
         snprintf(ff, 3, "x%d", ui.fast_fwd_factor);
