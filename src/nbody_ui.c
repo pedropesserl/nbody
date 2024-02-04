@@ -23,16 +23,16 @@ void resize_image_to_rectangle(Image *image, Vector2 rectangle_size, float scale
 }
 
 #define LOAD_ICONS { \
-            LoadImage("./img/icon_pause.png"),      \
-            LoadImage("./img/icon_play.png"),       \
-            LoadImage("./img/icon_arrows_off.png"), \
-            LoadImage("./img/icon_arrows_on.png"),  \
-            LoadImage("./img/icon_trails_off.png"), \
-            LoadImage("./img/icon_trails_on.png"),  \
-            LoadImage("./img/icon_confirm.png"),    \
-            LoadImage("./img/icon_cancel.png"),     \
-            LoadImage("./img/icon_fast_fwd.png"),   \
-            LoadImage("./img/icon_rewind.png"),     \
+            LoadImage("./resources/img/icon_pause.png"),      \
+            LoadImage("./resources/img/icon_play.png"),       \
+            LoadImage("./resources/img/icon_arrows_off.png"), \
+            LoadImage("./resources/img/icon_arrows_on.png"),  \
+            LoadImage("./resources/img/icon_trails_off.png"), \
+            LoadImage("./resources/img/icon_trails_on.png"),  \
+            LoadImage("./resources/img/icon_confirm.png"),    \
+            LoadImage("./resources/img/icon_cancel.png"),     \
+            LoadImage("./resources/img/icon_fast_fwd.png"),   \
+            LoadImage("./resources/img/icon_rewind.png"),     \
         }
 
 Button new_button(Button_ID id, Button_Type type) {
@@ -131,10 +131,10 @@ Input_Box new_input_box(Vector2 position) {
         .fields[1] = new_string_input("Density:", 8,
             (Vector2){ field_boxes_positions[1].x, field_boxes_positions[1].y },
             (Vector2){ field_box_width, field_box_height }),
-        .fields[2] = new_string_input("Velocity (x):", 12,
+        .fields[2] = new_string_input("Velocity (x):", 13,
             (Vector2){ field_boxes_positions[2].x, field_boxes_positions[2].y },
             (Vector2){ field_box_width, field_box_height }),
-        .fields[3] = new_string_input("Velocity (y):", 12,
+        .fields[3] = new_string_input("Velocity (y):", 13,
             (Vector2){ field_boxes_positions[3].x, field_boxes_positions[3].y },
             (Vector2){ field_box_width, field_box_height }),
         .confirm = new_button(BUTTON_CONFIRM, BUTTON_SECONDARY),
@@ -187,6 +187,7 @@ UI setup_ui(void) {
         .position_to_create_body = Vector2Zero(),
         .created_body_with_input = false,
         .icons = {{0}}, // initialized after we load and resize the images
+        .font = LoadFontEx("./resources/fonts/monocode-semibold.ttf", 28, NULL, 0),
     };
     ui.body_input.is_on = false;
 
@@ -206,8 +207,8 @@ UI setup_ui(void) {
     resize_image_to_rectangle(&(icons_img[ICON_IDX_ARROWS_ON]),  toggle_arrows_size, 0.8f);
     resize_image_to_rectangle(&(icons_img[ICON_IDX_TRAILS_OFF]), toggle_trails_size, 0.8f);
     resize_image_to_rectangle(&(icons_img[ICON_IDX_TRAILS_ON]),  toggle_trails_size, 0.8f);
-    resize_image_to_rectangle(&(icons_img[ICON_IDX_CONFIRM]),    confirm_size, 0.85f);
-    resize_image_to_rectangle(&(icons_img[ICON_IDX_CANCEL]),     cancel_size, 0.7f);
+    resize_image_to_rectangle(&(icons_img[ICON_IDX_CONFIRM]),    confirm_size, 0.75f);
+    resize_image_to_rectangle(&(icons_img[ICON_IDX_CANCEL]),     cancel_size, 0.6f);
     resize_image_to_rectangle(&(icons_img[ICON_IDX_FAST_FWD]),   fast_fwd_size, 0.75f);
     resize_image_to_rectangle(&(icons_img[ICON_IDX_REWIND]),     rewind_size, 0.75f);
     for (int i = 0; i < ICON_COUNT; i++) {
@@ -592,19 +593,23 @@ void draw_input_box(Input_Box ib, UI ui) {
     draw_button(ib.confirm, ui);
     draw_button(ib.cancel, ui);
 
-    int font_size = (int)ib.fields[0].input_box.height - 6;
+    float font_size = ib.fields[0].input_box.height * 0.75;
     
     for (int i = 0; i < MAX_FIELDS; i++) {
-        DrawText(ib.fields[i].label, (int)(ib.box.x + INPUT_FIELD_MARGIN),
-                 ib.fields[i].input_box.y + 3, font_size, WHITE);
+        Vector2 label_size = MeasureTextEx(ui.font, ib.fields[i].label, font_size, 0.5);
+        // TODO: center label correctly instead of just adding 3
+        Vector2 label_position = (Vector2){ ib.box.x + INPUT_FIELD_MARGIN,
+            ib.fields[i].input_box.y + ib.fields[i].input_box.height/2.0f - label_size.y/2.0f };
+        DrawTextEx(ui.font, ib.fields[i].label, label_position, font_size, 0.5, WHITE);
         DrawRectangleRounded(ib.fields[i].input_box, ib.fields[i].roundness, segments,
                              ib.fields[i].color);
         if (ib.fields[i].is_selected) {
             DrawRectangleRoundedLines(ib.fields[i].input_box, ib.fields[i].roundness,
                                       segments, 2.0f, ib.border_color);
         }
-        DrawText(ib.fields[i].input, ib.fields[i].input_box.x + 4,
-                 ib.fields[i].input_box.y + 4, font_size, WHITE);
+        Vector2 input_position = (Vector2){ ib.fields[i].input_box.x + 3,
+            ib.fields[i].input_box.y + ib.fields[i].input_box.height/2.0f - label_size.y/2.0f };
+        DrawTextEx(ui.font, ib.fields[i].input, input_position, font_size, 0.5, WHITE);
     }
 }
 
@@ -615,11 +620,14 @@ void draw_ui(UI ui) {
     draw_button(ui.toggle_trails, ui);
     draw_button(ui.fast_fwd, ui);
     if (ui.fast_fwd_factor == 0) {
-        DrawText("REWIND", GetScreenWidth() - MeasureText("REWIND", 20) - 10, 10, 20, WHITE);
+        Vector2 text_size = MeasureTextEx(ui.font, "REWIND", 28, 0.5);
+        DrawTextEx(ui.font, "REWIND", (Vector2){GetScreenWidth() - text_size.x - 10, 10}, 28, 0.5, WHITE);
+        /* DrawText("REWIND", GetScreenWidth() - MeasureText("REWIND", 20) - 10, 10, 20, WHITE); */
     } else if (ui.fast_fwd_factor > 1) {
         char ff[3] = {0};
         snprintf(ff, 3, "x%d", ui.fast_fwd_factor);
-        DrawText(ff, GetScreenWidth() - MeasureText(ff, 20) - 10, 10, 20, WHITE);
+        Vector2 text_size = MeasureTextEx(ui.font, ff, 28, 0.5);
+        DrawTextEx(ui.font, ff, (Vector2){GetScreenWidth() - text_size.x - 10, 10}, 28, 0.5, WHITE);
     }
     draw_button(ui.rewind, ui);
 }
