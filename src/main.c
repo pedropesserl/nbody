@@ -14,6 +14,7 @@ int main(int argc, char **argv) {
     Bodies bodies = create_bodies(n_bodies, 1200, 900);
 
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
+    SetConfigFlags(FLAG_MSAA_4X_HINT);
     InitWindow(1200, 900, "nbody");
     SetWindowState(FLAG_VSYNC_HINT);
     SetTargetFPS(60);
