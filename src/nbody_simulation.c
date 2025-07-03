@@ -79,10 +79,11 @@ Trail new_trail() {
 }
 
 void push_to_trail(Trail *trail, Body body) {
-    trail->positions[(trail->end + 1) % MAX_TRAIL] = body.position;
-    trail->velocities[(trail->end + 1) % MAX_TRAIL] = body.velocity;
-    trail->accelerations[(trail->end + 1) % MAX_TRAIL] = body.acceleration;
-    trail->end = (trail->end + 1) % MAX_TRAIL;
+    int new_trail_end = (trail->end + 1) % MAX_TRAIL;
+    trail->positions[new_trail_end] = body.position;
+    trail->velocities[new_trail_end] = body.velocity;
+    trail->accelerations[new_trail_end] = body.acceleration;
+    trail->end = new_trail_end;
     if (trail->begin == trail->end) {
         trail->begin = (trail->begin + 1) % MAX_TRAIL;
     }

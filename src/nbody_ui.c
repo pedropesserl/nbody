@@ -275,10 +275,8 @@ static void zoom_camera_on_mouse_wheel(Camera2D *camera, float wheel) {
     Vector2 mouse_world_pos = GetScreenToWorld2D(GetMousePosition(), *camera);
     camera->offset = GetMousePosition();
     camera->target = mouse_world_pos;
-    const float zoom_increment = 0.125f;
-    camera->zoom += wheel * zoom_increment;
-    if (camera->zoom < zoom_increment)
-        camera->zoom = zoom_increment;
+    float scale = 0.2f * wheel;
+    camera->zoom = fmax(expf(logf(camera->zoom) + scale), 0.125f);
 }
 
 static void update_input_box(Input_Box *ib, Vector2 mouse_in_world, UI *ui) {
