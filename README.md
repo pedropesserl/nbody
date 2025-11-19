@@ -5,21 +5,28 @@ the library Raylib for the GUI.
 
 <img src="example.gif" width="700">
 
-### Quick Start
+## Quick Start
 
-#### Install [Raylib](https://raylib.com)
+### Install [Raylib](https://raylib.com)
 
 - On Linux: https://github.com/raysan5/raylib/wiki/Working-on-GNU-Linux
-- On Windows: https://raysan5.itch.io/raylib/download/eyJpZCI6ODUzMzEsImV4cGlyZXMiOjE3MDM4MjE2MDF9%2eeHtu8IQLjDZOCRSj1JbuoS18Fbg%3d
+- For Web: https://github.com/raysan5/raylib/wiki/Working-for-Web-(HTML5)
 
-#### Compile
+### Clone repo
 
 ```bash
 $ git clone https://github.com/pedropesserl/nbody.git
-$ make
 ```
 
-### Usage
+### Compile 
+
+Compilation options: `nbody` (default), `web`, `all` (both)
+
+```bash
+$ make [compilation_option]
+```
+
+## Usage
 
 - `$ ./nbody` - Make an empty space and fill it with bodies by clicking the screen.
 
@@ -27,15 +34,18 @@ $ make
 
 Note: Mass and density must be greater than zero. The radius of each body is calculated as the cube root of its volume (mass/density), to emulate the square-cube law. 
 
-### Keyboard shortcuts
+## Controls
 
+- Mouse Left: add planet
+- Mouse Right (drag): move through space
+- Mouse Wheel: zoom
 - `␣` Play/pause simulation
 - `a` Toggle arrows
 - `t` Toggle trails
 - `←` Rewind
 - `→` Fast forward
 
-### Sources
+## Sources
 
 - https://www.raylib.com/examples.html
 - https://en.wikipedia.org/wiki/Elastic_collision#Two-dimensional
