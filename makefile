@@ -1,29 +1,25 @@
 CC = gcc
 PROGRAM = nbody
+SRC_PATH = src
+INC_PATH = include
+RAYLIB_PATH = /home/pedro/software/raylib/src
 
-CFLAGS = -Iinclude -Wall -Wextra -g
-LFLAGS = -lm -lraylib
+CFLAGS = -Iinclude -I$(RAYLIB_PATH) -Wall -Wextra -g
+LFLAGS = -L$(RAYLIB_PATH) -lm
 
-_OBJ = main.o nbody_simulation.o nbody_ui.o
-_DEPS = raylib.h raymath.h nbody_simulation.h nbody_ui.h
+_SRC = main nbody_simulation nbody_ui
+_DEPS = nbody_simulation.h nbody_ui.h
 
-SDIR = src
-IDIR = include
+SRC = $(_SRC:%=$(SRC_PATH)/%.c)
+DEPS = $(_DEPS:%=$(INC_PATH)/%) $(RAYLIB_PATH)/raylib.h $(RAYLIB_PATH)/raymath.h
 
-OBJ = $(_OBJ:%=$(SDIR)/%)
-DEPS = $(_DEPS:%=$(IDIR)/%)
+$(PROGRAM): $(DEPS)
+	$(CC) -o $@ $(SRC) $(CFLAGS) $(LFLAGS) -lraylib
 
-%.o: %.c $(DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
+all: $(PROGRAM) web
 
-all: $(PROGRAM)
-all: clean
-
-$(PROGRAM): $(OBJ)
-	$(CC) -o $@ $^ $(LFLAGS)
-
-clean:
-	rm -f $(OBJ)
+web: $(DEPS)
+	emcc -o $(PROGRAM).html $(SRC) $(CFLAGS) $(LFLAGS) -lraylib.web -s USE_GLFW=3 -s ASYNCIFY -DPLATFORM_WEB --preload-file resources
 
 purge:
-	rm -f $(OBJ) $(PROGRAM)
+	rm -f $(PROGRAM) *.html *.js *.wasm *.data

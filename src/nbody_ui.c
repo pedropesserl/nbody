@@ -568,8 +568,8 @@ void draw_button(Button b, UI ui) {
 
     DrawRectangleRounded(b.box, b.roundness, segments, b.color);
     if (b.has_border) {
-        DrawRectangleRoundedLines(b.box, b.roundness, segments,
-                                  b.border_thickness, b.border_color);
+        DrawRectangleRoundedLinesEx(b.box, b.roundness, segments,
+                                    b.border_thickness, b.border_color);
     }
    
     // TODO: find a way to perfectly scale the image given the button roundness
@@ -585,8 +585,8 @@ void draw_input_box(Input_Box ib, UI ui) {
     
     DrawRectangleRounded(ib.box, ib.roundness, segments, ib.color);
     if (ib.has_border) {
-        DrawRectangleRoundedLines(ib.box, ib.roundness, segments,
-                                  ib.border_thickness, ib.border_color);
+        DrawRectangleRoundedLinesEx(ib.box, ib.roundness, segments,
+                                    ib.border_thickness, ib.border_color);
     }
 
     draw_button(ib.confirm, ui);
@@ -603,8 +603,8 @@ void draw_input_box(Input_Box ib, UI ui) {
         DrawRectangleRounded(ib.fields[i].input_box, ib.fields[i].roundness, segments,
                              ib.fields[i].color);
         if (ib.fields[i].is_selected) {
-            DrawRectangleRoundedLines(ib.fields[i].input_box, ib.fields[i].roundness,
-                                      segments, 2.0f, ib.border_color);
+            DrawRectangleRoundedLinesEx(ib.fields[i].input_box, ib.fields[i].roundness,
+                                        segments, 2.0f, ib.border_color);
         }
         Vector2 input_position = (Vector2){ ib.fields[i].input_box.x + 2,
             ib.fields[i].input_box.y + ib.fields[i].input_box.height/2.0f - label_size.y/2.0f };

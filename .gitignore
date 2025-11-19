@@ -1,2 +1,6 @@
 nbody
 src/*.o
+*.html
+*.js
+*.wasm
+*.data
